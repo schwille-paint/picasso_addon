@@ -1,0 +1,12 @@
+Metadata-Version: 1.1
+Name: picasso-addon
+Version: 0.1
+Summary: Some addons for picasso
+Home-page: http://www.github.com/schwille-paint/picasso_addon
+Author: Stehr Florian
+Author-email: stehr@biochem.mpg.de
+License: Max Planck Institute of Biochemistry
+Description: UNKNOWN
+Platform: UNKNOWN
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Operating System :: OS Independent

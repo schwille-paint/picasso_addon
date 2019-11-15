@@ -1,0 +1,12 @@
+README.md
+setup.py
+picasso_addon/__init__.py
+picasso_addon/autopick.py
+picasso_addon/io.py
+picasso_addon/localize.py
+picasso_addon/special.py
+picasso_addon.egg-info/PKG-INFO
+picasso_addon.egg-info/SOURCES.txt
+picasso_addon.egg-info/dependency_links.txt
+picasso_addon.egg-info/requires.txt
+picasso_addon.egg-info/top_level.txt
