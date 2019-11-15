@@ -12,13 +12,13 @@ Custom module making [picasso](https://github.com/jungmannlab/picasso) key funct
 
 ## Installation
 
-1. Activate your conda environment in which you want picasso_addon to be installed ``conda activate <envname>``
+1. Activate the conda environment in which you want picasso_addon to be installed: ``conda activate <envname>``
 
 
-Installing the [picasso_addon](https://github.com/jungmannlab/picasso) package: 
+Installing the [picasso_addon](https://github.com/schwille-paint/picasso_addon) package: 
 
-2. [Clone](https://help.github.com/en/articles/cloning-a-repository) the [picasso_addon](https://github.com/jungmannlab/picasso) repository
-3. Switch to the cloned folder ``cd picasso_addon``
-4. Install picasso into the environment ``python setup.py install``
+2. [Clone](https://help.github.com/en/articles/cloning-a-repository) the [picasso_addon](https://github.com/schwille-paint/picasso_addon) repository: ``git clone  https://github.com/schwille-paint/picasso_addon``
+3. Switch to the cloned folder: ``cd picasso_addon``
+4. Install picasso into the environment: ``python setup.py install``
 
 
