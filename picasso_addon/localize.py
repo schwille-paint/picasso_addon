@@ -142,6 +142,15 @@ def main(movie,info,**params):
         mng(in=400):               Minimal net-gradient spot detection threshold(see picasso.localize)
         segments(int=1000):        Segment length (frames) for undrifting by RCC (see picasso.render)
     
+    return:
+        list[0][0](dict):            Dict of **kwargs passed to localize
+        list[0][1](numpy.recarray):  Localizations as created by picasso.localize
+                                     Localizations will be saved with extension '_locs.hdf5' for usage in picasso.render
+        list[1][0](dict):            Dict of **kwargs passed to undrift
+        list[1][1](numpy.recarray):  Undrifted(RCC) localizations as created by picasso.render.
+                                     If undrifing was not succesfull just corresponds to original loclizations.
+                                     Will be saved with extension '_locs_render.hdf5' for usage in picasso.render                            
+                                     If undrifing was not succesfull only _locs will be saved.
     '''
     ### Set standard paramters if not given with function call
     standard_params={'undrift':True}

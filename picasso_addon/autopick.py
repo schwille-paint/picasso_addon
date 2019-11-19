@@ -196,19 +196,26 @@ def main(locs,info,**params):
     
     
     args:
-        locs(numpy.recarray):      (Undrifted) localization list as created by picasso.localize
-        info(list(dict)):          Info to localization list when loaded with picasso.io.load_locs()
+        locs(numpy.recarray):           (Undrifted) localization list as created by picasso.localize.
+        info(list(dict)):               Info to localization list when loaded with picasso.io.load_locs().
     
-    **kwargs: If not explicitly specified set to default, also when specified as None
-        oversampling(int=5):            Oversampling for rendering of loclization list, i.e. sub-pixels per pixel of original image
-        pick_box(int=2*oversampling+1): Box length for spot detection in rendered image similar to picasso.localize 
-        min_n_locs(float=0.2*NoFrames): Detection threshold for number of localizations in cluster
+    **kwargs: If not explicitly specified set to default, also when specified as None.
+        oversampling(int=5):            Oversampling for rendering of loclization list, i.e. sub-pixels per pixel of original image.
+        pick_box(int=2*oversampling+1): Box length for spot detection in rendered image similar to picasso.localize. 
+        min_n_locs(float=0.2*NoFrames): Detection threshold for number of localizations in cluster.
         fit_center(bool=False):         If set to False center corresponds to center of mass of of loclizations per sub-pixel 
-                                        If set to True center corresponds to gaussian fit of pick_box area
+                                        If set to True center corresponds to gaussian fit of pick_box area.
         pick_diameter(float=2):         Pick diameter in original pixels, i.e. cluster = localizations within 
-                                        circle around center of diameter = pick_diameter (see picasso.render)
-        lbfcs(bool=False):              If set to True will overrun min_n_locs and sets it to 0.01*NoFrames
+                                        circle around center of diameter = pick_diameter (see picasso.render).
+        lbfcs(bool=False):              If set to True will overrun min_n_locs and sets it to 0.01*NoFrames.
     
+    return: list
+        list[0](dict):                  Dict of **kwargs passed to function.
+        list[1](pandas.DataFrame):      Center positions and number of localizations per pick.
+                                        Center positions will be saved with extension '_autopick.yaml' for usage in picasso.render
+        list[1](pandas.DataFrame):      Picked localizations, i.e. same as original 
+                                        but with group ID defined for each localization in pick.
+                                        Picked localizations will be saved with extension '_picked.hdf5' for usage in picasso.render
     '''
     ### Set standard conditions if not set as input
     oversampling=5
@@ -244,7 +251,7 @@ def main(locs,info,**params):
     try: extension=info[-1]['extension']+'_picked'
     except: extension='_locs_xxx_picked'
     params['extension']=extension
-    params['generatedby']='picasso.autopick.main()'
+    params['generatedby']='picasso_addon.autopick.main()'
     
     ### Get path of raw data
     path=info[0]['File']
