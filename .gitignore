@@ -2,5 +2,6 @@ __pycache__
 /picasso_addon/__pycache__
 /picasso_addon.egg-info
 /build
+/dist
 .gitignore~
 
