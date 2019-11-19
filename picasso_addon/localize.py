@@ -131,7 +131,7 @@ def main(movie,info,**params):
     
     args:
         movie(picasso.io):         Raw movie loaded with picasso.io.load_movie()
-        info(picasso.io):          Info to raw movie loaded with picasso.io.load_movie()
+        info(list(dicts)):         Info to raw movie loaded with picasso.io.load_movie()
     
     **kwargs: If not explicitly specified set to default, also when specified as None
         baseline(int=70):          Camera spec. baseline (see picasso.localize).

@@ -190,7 +190,26 @@ def get_picked(locs,picks_idx,field='group'):
 
 #%%
 def main(locs,info,**params):
+    '''
+    Cluster detection (pick) in localization list by thresholding in number of localizations per cluster.
+    Cluster centers are determined by creating images of localization list with set oversampling.
     
+    
+    args:
+        locs(numpy.recarray):      (Undrifted) localization list as created by picasso.localize
+        info(list(dict)):          Info to localization list when loaded with picasso.io.load_locs()
+    
+    **kwargs: If not explicitly specified set to default, also when specified as None
+        oversampling(int=5):            Oversampling for rendering of loclization list, i.e. sub-pixels per pixel of original image
+        pick_box(int=2*oversampling+1): Box length for spot detection in rendered image similar to picasso.localize 
+        min_n_locs(float=0.2*NoFrames): Detection threshold for number of localizations in cluster
+        fit_center(bool=False):         If set to False center corresponds to center of mass of of loclizations per sub-pixel 
+                                        If set to True center corresponds to gaussian fit of pick_box area
+        pick_diameter(float=2):         Pick diameter in original pixels, i.e. cluster = localizations within 
+                                        circle around center of diameter = pick_diameter (see picasso.render)
+        lbfcs(bool=False):              If set to True will overrun min_n_locs and sets it to 0.01*NoFrames
+    
+    '''
     ### Set standard conditions if not set as input
     oversampling=5
     NoFrames=info[0]['Frames']
