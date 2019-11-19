@@ -125,7 +125,23 @@ def undriftrcc_locs(locs,info,**params):
 #%%
 def main(movie,info,**params):
     '''
-    Localize movie and undrift resulting localizations using rcc.
+    Localize movie (least squares, GPU fitting if available) and 
+    undrift resulting localizations using rcc.
+    
+    
+    args:
+        movie(picasso.io):         Raw movie loaded with picasso.io.load_movie()
+        info(picasso.io):          Info to raw movie loaded with picasso.io.load_movie()
+    
+    **kwargs: If not explicitly specified set to default, also when specified as None
+        baseline(int=70):          Camera spec. baseline (see picasso.localize).
+        gain(float=1):             Camera spec. EM gain (see picasso.localize)
+        sensitivity(float=0.56):   Camera spec. sensitivity (see picasso.localize)
+        qe(float=0.82):            Camera spec. sensitivity (see picasso.localize)
+        box(int=5):                Box length (uneven!) of fitted spots (see picasso.localize)
+        mng(in=400):               Minimal net-gradient spot detection threshold(see picasso.localize)
+        segments(int=1000):        Segment length (frames) for undrifting by RCC (see picasso.render)
+    
     '''
     ### Set standard paramters if not given with function call
     standard_params={'undrift':True}
