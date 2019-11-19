@@ -11,7 +11,7 @@ try:
     gpufit_available=True
     gpufit_available=gf.cuda_available()
 except ImportError:
-    gpufit_installed = False
+    gpufit_available = False
 
 #%%
 def localize_movie(movie,**params):
