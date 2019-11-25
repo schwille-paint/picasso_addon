@@ -140,6 +140,7 @@ def main(movie,info,**params):
         qe(float=0.82):            Camera spec. sensitivity (see picasso.localize)
         box(int=5):                Box length (uneven!) of fitted spots (see picasso.localize)
         mng(in=400):               Minimal net-gradient spot detection threshold(see picasso.localize)
+        undrift(bool=True)         Apply RCC drift correction (see picasso.render)
         segments(int=1000):        Segment length (frames) for undrifting by RCC (see picasso.render)
     
     return:
