@@ -207,7 +207,7 @@ def main(locs,info,**params):
                                         If set to True center corresponds to gaussian fit of pick_box area.
         pick_diameter(float=2):         Pick diameter in original pixels, i.e. cluster = localizations within 
                                         circle around center of diameter = pick_diameter (see picasso.render).
-        lbfcs(bool=False):              If set to True will overrun min_n_locs and sets it to 0.01*NoFrames.
+        lbfcs(bool=False):              If set to True will overrun min_n_locs and sets it to 0.05*NoFrames.
     
     return: list
         list[0](dict):                  Dict of **kwargs passed to function.
@@ -227,6 +227,14 @@ def main(locs,info,**params):
                      'fit_center':False,
                      'pick_diameter':2,
                      }
+    ### If lbFCS given overrun min_n_locs
+    try: 
+        if params['lbfcs']==True: 
+            standard_params['min_n_locs']=0.05*NoFrames
+            standard_params['lbfcs']=True
+    except KeyError:
+        pass
+        
     ### Remove keys in params that are not needed
     for key, value in standard_params.items():
         try:
@@ -241,11 +249,6 @@ def main(locs,info,**params):
             delete_key.extend([key])
     for key in delete_key:
         del params[key]
-    ### Add some cases to cover both lbfcs and spt usage regarding min_value
-    try: 
-        if params['lbfcs']==True: params['min_n_locs']=0.01*NoFrames
-    except KeyError:
-        params['lbfcs']=False
         
     ### Procsessing marks: extension&generatedby
     try: extension=info[-1]['extension']+'_picked'
