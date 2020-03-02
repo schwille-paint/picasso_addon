@@ -256,6 +256,8 @@ def main(locs,info,**params):
     params['extension']=extension
     params['generatedby']='picasso_addon.autopick.main()'
     
+    ###
+    print('Minimum number of localizations in pick set to %i'%(params['min_n_locs']))
     ### Get path of raw data
     path=info[0]['File']
     path=os.path.splitext(path)[0]

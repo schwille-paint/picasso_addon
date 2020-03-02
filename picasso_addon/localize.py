@@ -1,4 +1,6 @@
 import os
+import numba
+import numpy as np
 
 import picasso.io as io
 import picasso.localize as localize
@@ -13,6 +15,84 @@ try:
 except ImportError:
     gpufit_available = False
 
+#%%
+@numba.jit(nopython=True, nogil=True, cache=False)
+def identify_in_image(image, box):
+    '''
+    Calculate net-gradient of all boxes in one image that have a local maximum in its center pixel.
+
+    Args:
+        image (np.array): One image of movie.
+        box (uneven int): Box size in pixels.
+
+    Returns:
+        ng (np.array): Net-gradient of all boxes thath have a local maximum in its center pixel
+
+    '''
+    y, x = localize.local_maxima(image, box)
+    box_half = int(box / 2)
+    # Now comes basically a meshgrid
+    ux = np.zeros((box, box), dtype=np.float32)
+    uy = np.zeros((box, box), dtype=np.float32)
+    for i in range(box):
+        val = box_half - i
+        ux[:, i] = uy[i, :] = val
+    unorm = np.sqrt(ux ** 2 + uy ** 2)
+    ux /= unorm
+    uy /= unorm
+    ng = localize.net_gradient(image, y, x, box, uy, ux)
+    return ng
+
+#%%
+def autodetect_mng(movie,info,box):
+    '''
+    Automatically detect minimal net-gradient for localization. 
+    Based on net-gradient distribution of all boxes in raw movie using identify_in_image().
+    Distribution is taken from 10 frames evenly distributed over total aquisition time.
+
+    Args:
+        movie (io.TiffMultiMap): Movie object as created by picasso.io.load_movie()
+        info (list): Info file as created by picasso.io.load_movie()
+        box (uneven int): Box size in pixels.
+
+    Returns:
+        mng (int): Minimal net gradient
+
+    '''
+
+    ### Get the distribution of netgradients in all boxes for 10 frames evenly distributed over total aquisition time.
+    frames=np.linspace(0,info[0]['Frames']-1,10).astype(int) # Select 10 frames
+    
+    ng_all=np.zeros(1) # Loop over 10 frames and get net-gradients of all boxes within
+    for f in frames:
+        ng=identify_in_image(movie[f].astype(float),box)
+        ng_all=np.hstack([ng_all,ng])
+    
+    ### Choose minimal net-gradient. Idea is to get the upper boundary of net-gradients 
+    ### corresponding to 'black' boxes, i.e backround noise
+    
+    ### First roughly cut out ower part of net-gradient distribution
+    ng_median=np.percentile(ng_all,50)
+    positives=(ng_all<=10*ng_median)&(ng_all>=-10*ng_median)
+    ng_all=ng_all[positives]
+    
+    ### Iteratively redefine the cut-out of the lower distribution:
+    ### Get median and interquartile width -> Define filter based on these quantities -> Cut out -> Repeat from beginning
+    for i in range(0,3):
+        ng_median=np.percentile(ng_all,50)
+        ng_width=np.percentile(ng_all,75)-np.percentile(ng_all,25)
+        ng_crit=2.5*ng_width
+        positives=(ng_all<=(ng_median+ng_crit))&(ng_all>=(ng_median-ng_crit))
+        ng_all=ng_all[positives]
+        
+    ng_median=np.percentile(ng_all,50)
+    ng_width=np.percentile(ng_all,75)-np.percentile(ng_all,25)
+    
+    mng=ng_median+2.5*ng_width
+    mng=int(np.ceil(mng/10)*10)
+        
+    return mng
+    
 #%%
 def localize_movie(movie,**params):
     '''
@@ -139,7 +219,8 @@ def main(movie,info,**params):
         sensitivity(float=0.56):   Camera spec. sensitivity (see picasso.localize)
         qe(float=0.82):            Camera spec. sensitivity (see picasso.localize)
         box(int=5):                Box length (uneven!) of fitted spots (see picasso.localize)
-        mng(in=400):               Minimal net-gradient spot detection threshold(see picasso.localize)
+        mng(int or str='auto'):    Minimal net-gradient spot detection threshold(see picasso.localize).
+                                   If set to 'auto' minimal net_gradient is determined by autodetect_mng().
         undrift(bool=True)         Apply RCC drift correction (see picasso.render)
         segments(int=1000):        Segment length (frames) for undrifting by RCC (see picasso.render)
     
@@ -151,10 +232,12 @@ def main(movie,info,**params):
         list[1][1](numpy.recarray):  Undrifted(RCC) localizations as created by picasso.render.
                                      If undrifing was not succesfull just corresponds to original loclizations.
                                      Will be saved with extension '_locs_render.hdf5' for usage in picasso.render                            
-                                     If undrifing was not succesfull only _locs will be saved.
+                                     If undrifting was not succesfull only _locs will be saved.
     '''
     ### Set standard paramters if not given with function call
-    standard_params={'undrift':True}
+    standard_params={'undrift':True,
+                     'mng':'auto',
+                     'box':5}
     for key, value in standard_params.items():
         try:
             params[key]
@@ -165,9 +248,19 @@ def main(movie,info,**params):
     ### Get path of raw data
     path=info[0]['File']
     path=os.path.splitext(path)[0]
+    
+    ### Autodetect optimum minimal net-gradient
+    if params['mng']=='auto':
+        params['mng']=autodetect_mng(movie,info,params['box'])
+        params['auto_mng']=True
+        print()
+        print('Minimum net-gradient set to %i'%(params['mng']))
+        
     ### Localize movie
     out_localize=localize_movie(movie,**params)
-    
+    try: out_localize[0]['auto_mng']=params['auto_mng'] # Add auto_mng entry to localize yaml if active
+    except: pass
+
     ### Save _locs and yaml
     print('Saving _locs ...')
     info_locs=info.copy()+[out_localize[0]]
