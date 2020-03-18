@@ -113,6 +113,7 @@ def localize_movie(movie,**params):
             if params[key]==None: params[key]=standard_params[key]
         except:
             params[key]=standard_params[key]
+    
     ### Remove keys that are not needed
     delete_key=[]
     for key, value in params.items():
@@ -120,8 +121,8 @@ def localize_movie(movie,**params):
             delete_key.extend([key])
     for key in delete_key:
         del params[key]
-    ### Procsessing marks: extension&generatedby
-    params['extension']='_locs'
+        
+    ### Procsessing marks:
     params['generatedby']='picasso_addon.localize.localize_movie()'
     
     ### Set camera specs for photon conversion
@@ -182,6 +183,7 @@ def undriftrcc_locs(locs,info,**params):
             if params[key]==None: params[key]=standard_params[key]
         except:
             params[key]=standard_params[key]
+            
     ### Remove keys that are not needed
     delete_key=[]
     for key, value in params.items():
@@ -189,8 +191,8 @@ def undriftrcc_locs(locs,info,**params):
             delete_key.extend([key])
     for key in delete_key:
         del params[key]
-    ### Procsessing marks: extension&generatedby
-    params['extension']='_locs_render'
+        
+    ### Procsessing marks: generatedby
     params['generatedby']='picasso_addon.localize.undriftrcc_locs()'
     
     drift,locs_render=postprocess.undrift(locs,
@@ -203,17 +205,20 @@ def undriftrcc_locs(locs,info,**params):
     return [params,locs_render]
 
 #%%
-def main(movie,info,**params):
+def main(file,info,path,**params):
     '''
     Localize movie (least squares, GPU fitting if available) and 
     undrift resulting localizations using rcc.
     
     
     args:
-        movie(picasso.io):         Raw movie loaded with picasso.io.load_movie()
-        info(list(dicts)):         Info to raw movie loaded with picasso.io.load_movie()
+        file(picasso.io):          Either:
+                                        1) Raw movie loaded with picasso.io.load_movie()
+                                        2) _locs.hdf5 loaded with picasso.io.load_locs()
+        info(list(dicts)):         Info to raw movie/_locs.hdf5 loaded with picasso.io.load_movie() or picasso.io.load_locs()
     
     **kwargs: If not explicitly specified set to default, also when specified as None
+        localize(bool=True)        Localize raw movie (see picasso.localize)
         baseline(int=70):          Camera spec. baseline (see picasso.localize).
         gain(float=1):             Camera spec. EM gain (see picasso.localize)
         sensitivity(float=0.56):   Camera spec. sensitivity (see picasso.localize)
@@ -234,10 +239,15 @@ def main(movie,info,**params):
                                      Will be saved with extension '_locs_render.hdf5' for usage in picasso.render                            
                                      If undrifting was not succesfull only _locs will be saved.
     '''
+    ### Path of file that is processed
+    path=os.path.splitext(path)[0]
+    
     ### Set standard paramters if not given with function call
-    standard_params={'undrift':True,
+    standard_params={'localize':True,
+                     'undrift':True,
                      'mng':'auto',
-                     'box':5}
+                     'box':5,
+                     }
     for key, value in standard_params.items():
         try:
             params[key]
@@ -245,38 +255,43 @@ def main(movie,info,**params):
         except:
             params[key]=standard_params[key]
     
-    ### Get path of raw data
-    path=info[0]['File']
-    path=os.path.splitext(path)[0]
     
-    ### Autodetect optimum minimal net-gradient
-    if params['mng']=='auto':
-        params['mng']=autodetect_mng(movie,info,params['box'])
-        params['auto_mng']=True
-        print()
-        print('Minimum net-gradient set to %i'%(params['mng']))
+    ############################# Localize
+    if params['localize']==True:
         
-    ### Localize movie
-    out_localize=localize_movie(movie,**params)
-    try: out_localize[0]['auto_mng']=params['auto_mng'] # Add auto_mng entry to localize yaml if active
-    except: pass
-
-    ### Save _locs and yaml
-    print('Saving _locs ...')
-    info_locs=info.copy()+[out_localize[0]]
-    io.save_locs(path+out_localize[0]['extension']+'.hdf5',
-                 out_localize[1],
-                 info_locs,
-                 )
-    ### Undrift
+        ### Autodetect optimum minimal net-gradient
+        if params['mng']=='auto':
+            params['mng']=autodetect_mng(file,info,params['box'])
+            params['auto_mng']=True
+            print()
+            print('Minimum net-gradient set to %i'%(params['mng']))
+           
+        ### Localize movie
+        out_localize=localize_movie(file,**params)
+        try: out_localize[0]['auto_mng']=True # Add auto_mng entry to localize yaml if active
+        except: pass
+    
+        ### Save _locs and yaml
+        print('Saving _locs ...')
+        info_locs=info.copy()+[out_localize[0]]
+        io.save_locs(path+'_locs.hdf5',
+                     out_localize[1],
+                     info_locs,
+                     )
+        
+    else: out_localize=[info,file]
+    
+    info=out_localize[0] # Update info
+    
+    ############################## Undrift
     if params['undrift']==True:
         try:
             out_undrift=undriftrcc_locs(out_localize[1],info,**params)
             
             ### Save _locs_render and yaml
             print('Saving _render ...')
-            info_render=info_locs.copy()+[out_undrift[0]]
-            io.save_locs(path+out_undrift[0]['extension']+'.hdf5',
+            info_render=info.copy()+[out_undrift[0]]
+            io.save_locs(path+'_render.hdf5',
                          out_undrift[1],
                          info_render,
                          )
@@ -288,5 +303,6 @@ def main(movie,info,**params):
          print('No undrifting')
          out_undrift=out_localize.copy()
          out_undrift[0]={'undrift':False,'extension':'_locs'}
+         
     
     return [out_localize, out_undrift]
