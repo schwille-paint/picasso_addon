@@ -189,7 +189,7 @@ def get_picked(locs,picks_idx,field='group'):
     return locs_picked
 
 #%%
-def main(locs,info,**params):
+def main(locs,info,path,**params):
     '''
     Cluster detection (pick) in localization list by thresholding in number of localizations per cluster.
     Cluster centers are determined by creating images of localization list with set oversampling.
@@ -217,6 +217,9 @@ def main(locs,info,**params):
                                         but with group ID defined for each localization in pick.
                                         Picked localizations will be saved with extension '_picked.hdf5' for usage in picasso.render
     '''
+    ### Path of file that is processed
+    path=os.path.splitext(path)[0]
+    
     ### Set standard conditions if not set as input
     oversampling=5
     NoFrames=info[0]['Frames']
@@ -242,6 +245,7 @@ def main(locs,info,**params):
             if params[key]==None: params[key]=standard_params[key]
         except:
             params[key]=standard_params[key]
+    
     ### Remove keys in params that are not needed
     delete_key=[]
     for key, value in params.items():
@@ -250,19 +254,13 @@ def main(locs,info,**params):
     for key in delete_key:
         del params[key]
         
-    ### Procsessing marks: extension&generatedby
-    try: extension=info[-1]['extension']+'_picked'
-    except: extension='_locs_xxx_picked'
-    params['extension']=extension
+    ### Procsessing marks: generatedby
     params['generatedby']='picasso_addon.autopick.main()'
     
-    ###
-    print('Minimum number of localizations in pick set to %i'%(params['min_n_locs']))
-    ### Get path of raw data
-    path=info[0]['File']
-    path=os.path.splitext(path)[0]
     
-    ### Check if locs is given as numpy.recarray as created by piocasso.localize
+    print('Minimum number of localizations in pick set to %i'%(params['min_n_locs']))
+    
+    ### Check if locs is given as numpy.recarray as created by picasso.localize
     if type(locs) is not np.recarray:
         raise SystemExit('locs must be given as numpy.recarray')
   
@@ -288,7 +286,7 @@ def main(locs,info,**params):
     ### Save converted centers as picks.yaml for later usage in picasso.render
     addon_io._save_picks(centers,
                          params['pick_diameter'],
-                         path+extension.replace('_picked','_autopick.yaml'),
+                         path+'_autopick.yaml',
                          )
     
     ### Query locs for centers
@@ -306,7 +304,7 @@ def main(locs,info,**params):
     ### Save locs_picked as .hdf5 and info+params as .yaml
     print('Saving _picked ...')
     info_picked=info.copy()+[params]
-    io.save_locs(path+extension+'.hdf5',
+    io.save_locs(path+'_picked.hdf5',
                  locs_picked.to_records(index=False),
                  info_picked,
                  )
