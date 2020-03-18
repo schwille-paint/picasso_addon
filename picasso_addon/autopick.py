@@ -303,10 +303,11 @@ def main(locs,info,path,**params):
                            )
     ### Save locs_picked as .hdf5 and info+params as .yaml
     print('Saving _picked ...')
-    info_picked=info.copy()+[params]
-    io.save_locs(path+'_picked.hdf5',
+    info_picked=info.copy()+[params] # Update info
+    next_path=path+'_picked.hdf5' # Update path
+    io.save_locs(next_path,
                  locs_picked.to_records(index=False),
                  info_picked,
                  )
     
-    return [params,centers,locs_picked]
+    return [params,locs_picked,centers,next_path]

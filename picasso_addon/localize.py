@@ -273,13 +273,16 @@ def main(file,info,path,**params):
     
         ### Save _locs and yaml
         print('Saving _locs ...')
-        info_locs=info.copy()+[out_localize[0]]
-        io.save_locs(path+'_locs.hdf5',
+        info_locs=info.copy()+[out_localize[0]] # Update inof
+        next_path=path+'_locs.hdf5' # Update path
+        io.save_locs(next_path,
                      out_localize[1],
                      info_locs,
                      )
         
-    else: out_localize=[info,file]
+    else: 
+        out_localize=[info,file]
+        next_path=path
     
     info=out_localize[0] # Update info
     
@@ -290,8 +293,9 @@ def main(file,info,path,**params):
             
             ### Save _locs_render and yaml
             print('Saving _render ...')
-            info_render=info.copy()+[out_undrift[0]]
-            io.save_locs(path+'_render.hdf5',
+            info_render=info.copy()+[out_undrift[0]] # Update info
+            next_path=path+'_render.hdf5' # Update path
+            io.save_locs(next_path,
                          out_undrift[1],
                          info_render,
                          )
@@ -299,10 +303,11 @@ def main(file,info,path,**params):
             print('Undrifting by RCC was not possible')
             out_undrift=out_localize.copy()
             out_undrift[0]={'undrift':'Error','extension':'_locs'}
+            
     else:
          print('No undrifting')
          out_undrift=out_localize.copy()
          out_undrift[0]={'undrift':False,'extension':'_locs'}
          
     
-    return [out_localize, out_undrift]
+    return [out_undrift[0],out_undrift[1],next_path]
