@@ -16,7 +16,7 @@ Addon for `picasso <https://github.com/jungmannlab/picasso.git>`_ including:
 
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    
    contact
    modules

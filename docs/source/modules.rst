@@ -2,6 +2,6 @@ API
 =======
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
 
    picasso_addon
