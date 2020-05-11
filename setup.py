@@ -15,7 +15,7 @@ setup(
    ],
    install_requires = [
         # Github picasso repo
-        'picasso @ git+ssh://git@github.com/jungmannlab/picasso.git#egg=picasso-0.1'
+        'picasso @ git+ssh://git@github.com/jungmannlab/picasso.git#egg=picasso-0.3.0'
     ]
 )
 
