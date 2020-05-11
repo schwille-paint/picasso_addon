@@ -1,4 +1,3 @@
-name: universal
 channels:
 - conda-forge
 - defaults
@@ -202,5 +201,3 @@ dependencies:
 - zipp=0.6.0=py_0
 - zlib=1.2.11=h62dcd97_3
 - zstd=1.3.7=h508b16e_0
-prefix: C:\Users\flori\Anaconda3\envs\universal
-
