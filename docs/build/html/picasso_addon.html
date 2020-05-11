@@ -1,0 +1,525 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Modules &#8212; picasso_addon 0.1 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="API" href="modules.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="modules">
+<h1>Modules<a class="headerlink" href="#modules" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-picasso_addon.autopick">
+<span id="picasso-addon-autopick-module"></span><h2>picasso_addon.autopick module<a class="headerlink" href="#module-picasso_addon.autopick" title="Permalink to this headline">¶</a></h2>
+<dl class="attribute">
+<dt id="picasso_addon.autopick.check_spots">
+<code class="sig-prename descclassname">picasso_addon.autopick.</code><code class="sig-name descname">check_spots</code><a class="headerlink" href="#picasso_addon.autopick.check_spots" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check all boxes around x,y for number of localizations, active pixels and center of mass position</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="picasso_addon.autopick.coordinate_convert">
+<code class="sig-prename descclassname">picasso_addon.autopick.</code><code class="sig-name descname">coordinate_convert</code><span class="sig-paren">(</span><em class="sig-param">spot_centers</em>, <em class="sig-param">viewport_min</em>, <em class="sig-param">oversampling</em><span class="sig-paren">)</span><a class="headerlink" href="#picasso_addon.autopick.coordinate_convert" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert spot centers as detected in rendered localizations by given viewport minima and oversampling back to original localization coordinates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>spot_centers</strong> (<em>pandas.DataFrame</em>) – Output spotcenters_in_image function.</p></li>
+<li><p><strong>viewport_min</strong> (<em>tuple of len=2</em>) – First tuple of viewport as in picasso.render: viewport=[(min_y,min_x),(max_y,max_x)]</p></li>
+<li><p><strong>oversampling</strong> (<em>int</em>) – Pixel oversampling as in picasso.render</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>spot_centers_convert</strong> – Spot centers converted back to orignal localization coordinates.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>pandas.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="picasso_addon.autopick.get_picked">
+<code class="sig-prename descclassname">picasso_addon.autopick.</code><code class="sig-name descname">get_picked</code><span class="sig-paren">(</span><em class="sig-param">locs</em>, <em class="sig-param">picks_idx</em>, <em class="sig-param">field='group'</em><span class="sig-paren">)</span><a class="headerlink" href="#picasso_addon.autopick.get_picked" title="Permalink to this definition">¶</a></dt>
+<dd><p>Assign group ID to locs and sort</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="picasso_addon.autopick.identifyspots_in_image">
+<code class="sig-prename descclassname">picasso_addon.autopick.</code><code class="sig-name descname">identifyspots_in_image</code><a class="headerlink" href="#picasso_addon.autopick.identifyspots_in_image" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="picasso_addon.autopick.main">
+<code class="sig-prename descclassname">picasso_addon.autopick.</code><code class="sig-name descname">main</code><span class="sig-paren">(</span><em class="sig-param">locs</em>, <em class="sig-param">info</em>, <em class="sig-param">path</em>, <em class="sig-param">**params</em><span class="sig-paren">)</span><a class="headerlink" href="#picasso_addon.autopick.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cluster detection (pick) in localization list by thresholding in number of localizations per cluster.
+Cluster centers are determined by creating images of localization list with set oversampling.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>locs</strong> (<em>numpy.recarray</em>) – (Undrifted) localization list as created by picasso.localize.</p></li>
+<li><p><strong>info</strong> (<em>list</em><em>(</em><em>dict</em><em>)</em>) – Info to localization list when loaded with picasso.io.load_locs().</p></li>
+</ul>
+</dd>
+</dl>
+<dl>
+<dt><a href="#id1"><span class="problematic" id="id2">**</span></a>kwargs: If not explicitly specified set to default, also when specified as None.</dt><dd><p>oversampling(int=5):            Oversampling for rendering of loclization list, i.e. sub-pixels per pixel of original image.
+pick_box(int=2*oversampling+1): Box length for spot detection in rendered image similar to picasso.localize.
+min_n_locs(float=0.2*NoFrames): Detection threshold for number of localizations in cluster.
+fit_center(bool=False):         If set to False center corresponds to center of mass of of loclizations per sub-pixel</p>
+<blockquote>
+<div><p>If set to True center corresponds to gaussian fit of pick_box area.</p>
+</div></blockquote>
+<dl class="simple">
+<dt>pick_diameter(float=2):         Pick diameter in original pixels, i.e. cluster = localizations within</dt><dd><p>circle around center of diameter = pick_diameter (see picasso.render).</p>
+</dd>
+</dl>
+<p>lbfcs(bool=False):              If set to True will overrun min_n_locs and sets it to 0.05*NoFrames.</p>
+</dd>
+<dt>return: list</dt><dd><p>list[0](dict):                  Dict of <a href="#id3"><span class="problematic" id="id4">**</span></a>kwargs passed to function.
+list[1](pandas.DataFrame):      Center positions and number of localizations per pick.</p>
+<blockquote>
+<div><p>Center positions will be saved with extension ‘_autopick.yaml’ for usage in picasso.render</p>
+</div></blockquote>
+<dl class="simple">
+<dt>list[1](pandas.DataFrame):      Picked localizations, i.e. same as original</dt><dd><p>but with group ID defined for each localization in pick.
+Picked localizations will be saved with extension ‘_picked.hdf5’ for usage in picasso.render</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="picasso_addon.autopick.query_locs_for_centers">
+<code class="sig-prename descclassname">picasso_addon.autopick.</code><code class="sig-name descname">query_locs_for_centers</code><span class="sig-paren">(</span><em class="sig-param">locs</em>, <em class="sig-param">centers</em>, <em class="sig-param">pick_radius=1</em><span class="sig-paren">)</span><a class="headerlink" href="#picasso_addon.autopick.query_locs_for_centers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Builds up KDtree for locs, queries the tree for localizations within pick_radius (norm of p=2) aorund centers (xy coordinates).
+Output will be list of indices as result of query.
+:param locs: locs as created by picasso.localize with fields ‘x’ and ‘y’
+:type locs: numpy.recarray or pandas.DataFrame
+:param centers: x and y pick center positions
+:type centers: np.array of shape (m,2)
+:param pick_diameter: Pick diameter in px
+:type pick_diameter: float</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><strong>picks_idx</strong> – List of len(centers). Single list entries correpond to indices in locs within pick_radius around centers.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="picasso_addon.autopick.spotcenters_in_image">
+<code class="sig-prename descclassname">picasso_addon.autopick.</code><code class="sig-name descname">spotcenters_in_image</code><span class="sig-paren">(</span><em class="sig-param">image</em>, <em class="sig-param">box</em>, <em class="sig-param">min_nlocs</em>, <em class="sig-param">fit=False</em><span class="sig-paren">)</span><a class="headerlink" href="#picasso_addon.autopick.spotcenters_in_image" title="Permalink to this definition">¶</a></dt>
+<dd><p>Identify picks in rendered image according to number of localizations.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-picasso_addon.io">
+<span id="picasso-addon-io-module"></span><h2>picasso_addon.io module<a class="headerlink" href="#module-picasso_addon.io" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="picasso_addon.io.load_locs">
+<code class="sig-prename descclassname">picasso_addon.io.</code><code class="sig-name descname">load_locs</code><span class="sig-paren">(</span><em class="sig-param">path</em>, <em class="sig-param">container='locs'</em><span class="sig-paren">)</span><a class="headerlink" href="#picasso_addon.io.load_locs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns localization .hdf5 from picasso as pandas.DataFrame and corresponding .yaml as list of dictionaries.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>readpath</strong> (<em>str</em>) – Path to .hdf5 file as generated by Picasso</p></li>
+<li><p><strong>container</strong> (<em>str</em>) – <dl class="simple">
+<dt>Must be set to:</dt><dd><ul>
+<li><p>’locs’ for ‘_locs’, ‘_render’ and ‘_picked’ .hdf5 files as generated by picasso.render</p></li>
+<li><p>’groups’ for ‘_pickprops’ .hdf5 files as generated by picasso.render</p></li>
+</ul>
+</dd>
+</dl>
+<p>Defaults to ‘locs’</p>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>locs</strong> (<em>pandas.DataFrame</em>) – Localization list stored under ‘locs’ in .hdf5 file</p></li>
+<li><p><strong>locs_info</strong> (<em>list</em>) – list of dictionaries contained in .yaml corresponding to .hdf5 file</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="picasso_addon.io.save_locs">
+<code class="sig-prename descclassname">picasso_addon.io.</code><code class="sig-name descname">save_locs</code><span class="sig-paren">(</span><em class="sig-param">path</em>, <em class="sig-param">locs</em>, <em class="sig-param">info</em>, <em class="sig-param">mode=None</em><span class="sig-paren">)</span><a class="headerlink" href="#picasso_addon.io.save_locs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save processed df of locs file belonging to origin_path in .hdf5 file and corresponding list of dictionaries in .yaml file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>locs</strong> (<em>pandas.DataFrame</em>) – locs (as in picasso) but converted to pd.DataFrame format</p></li>
+<li><p><strong>info</strong> (<em>list</em><em>(</em><em>dict1</em><em>,</em><em>dict2</em><em>,</em><em>..</em><em>)</em>) – List of dictionaries belonging to locs, will be stored in .yaml</p></li>
+<li><p><strong>path</strong> (<em>str</em>) – Path in which locs are stored</p></li>
+<li><p><strong>mode</strong> (<em>str</em>) – If mode=’picasso_compatible’ locs will be stored as np.rec_array to be readable with picasso.filter module</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-picasso_addon.localize">
+<span id="picasso-addon-localize-module"></span><h2>picasso_addon.localize module<a class="headerlink" href="#module-picasso_addon.localize" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="picasso_addon.localize.autodetect_mng">
+<code class="sig-prename descclassname">picasso_addon.localize.</code><code class="sig-name descname">autodetect_mng</code><span class="sig-paren">(</span><em class="sig-param">movie</em>, <em class="sig-param">info</em>, <em class="sig-param">box</em><span class="sig-paren">)</span><a class="headerlink" href="#picasso_addon.localize.autodetect_mng" title="Permalink to this definition">¶</a></dt>
+<dd><p>Automatically detect minimal net-gradient for localization.
+Based on net-gradient distribution of all boxes in raw movie using identify_in_image().
+Distribution is taken from 10 frames evenly distributed over total aquisition time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>movie</strong> (<em>io.TiffMultiMap</em>) – Movie object as created by picasso.io.load_movie().</p></li>
+<li><p><strong>info</strong> (<em>list</em>) – Info file as created by picasso.io.load_movie()</p></li>
+<li><p><strong>box</strong> (<em>uneven int</em>) – Box size in pixels.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Minimal net gradient</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>mng (int)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="picasso_addon.localize.identify_in_image">
+<code class="sig-prename descclassname">picasso_addon.localize.</code><code class="sig-name descname">identify_in_image</code><a class="headerlink" href="#picasso_addon.localize.identify_in_image" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate net-gradient of all boxes in one image that have a local maximum in its center pixel.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>image</strong> (<em>np.array</em>) – One image of movie.</p></li>
+<li><p><strong>box</strong> (<em>uneven int</em>) – Box size in pixels.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Net-gradient of all boxes thath have a local maximum in its center pixel</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>ng (np.array)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="picasso_addon.localize.localize_movie">
+<code class="sig-prename descclassname">picasso_addon.localize.</code><code class="sig-name descname">localize_movie</code><span class="sig-paren">(</span><em class="sig-param">movie</em>, <em class="sig-param">**params</em><span class="sig-paren">)</span><a class="headerlink" href="#picasso_addon.localize.localize_movie" title="Permalink to this definition">¶</a></dt>
+<dd><p>Localize raw movie using picasso.gausslq</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>movie</strong> (<em>io.TiffMultiMap</em>) – Movie object as created by picasso.io.load_movie().</p>
+</dd>
+<dt class="field-even">Keyword Arguments</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>localize</strong> (<em>bool=True</em>) – Localize raw movie (see picasso.localize)</p></li>
+<li><p><strong>baseline</strong> (<em>int=70</em>) – Camera spec. baseline (see picasso.localize).</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><ul class="simple">
+<li><p>[0] Dictionary of kwargs passed to function</p></li>
+<li><p>[1] Localizations (numpy.array) according to picasso.gausslq</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="picasso_addon.localize.main">
+<code class="sig-prename descclassname">picasso_addon.localize.</code><code class="sig-name descname">main</code><span class="sig-paren">(</span><em class="sig-param">file</em>, <em class="sig-param">info</em>, <em class="sig-param">path</em>, <em class="sig-param">**params</em><span class="sig-paren">)</span><a class="headerlink" href="#picasso_addon.localize.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>Localize movie (least squares, GPU fitting if available) and
+undrift resulting localizations using rcc.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>file</strong> (<em>picasso.io</em>) – Either:
+1) Raw movie loaded with picasso.io.load_movie()
+2) _locs.hdf5 loaded with picasso.io.load_locs()</p></li>
+<li><p><strong>info</strong> (<em>list</em><em>(</em><em>dicts</em><em>)</em>) – Info to raw movie/_locs.hdf5 loaded with picasso.io.load_movie() or picasso.io.load_locs()</p></li>
+</ul>
+</dd>
+</dl>
+<dl>
+<dt>kwargs: If not explicitly specified set to default, also when specified as None</dt><dd><p>localize(bool=True)        Localize raw movie (see picasso.localize)
+baseline(int=70):          Camera spec. baseline (see picasso.localize).
+gain(float=1):             Camera spec. EM gain (see picasso.localize)
+sensitivity(float=0.56):   Camera spec. sensitivity (see picasso.localize)
+qe(float=0.82):            Camera spec. sensitivity (see picasso.localize)
+box(int=5):                Box length (uneven!) of fitted spots (see picasso.localize)
+mng(int or str=’auto’):    Minimal net-gradient spot detection threshold(see picasso.localize).</p>
+<blockquote>
+<div><p>If set to ‘auto’ minimal net_gradient is determined by autodetect_mng().</p>
+</div></blockquote>
+<p>undrift(bool=True)         Apply RCC drift correction (see picasso.render)
+segments(int=1000):        Segment length (frames) for undrifting by RCC (see picasso.render)</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><p>Dict of <a href="#id5"><span class="problematic" id="id6">**</span></a>kwargs passed to localize
+list[0][1](numpy.recarray):  Localizations as created by picasso.localize</p>
+<blockquote>
+<div><p>Localizations will be saved with extension ‘_locs.hdf5’ for usage in picasso.render</p>
+</div></blockquote>
+<p>list[1][0](dict):            Dict of <a href="#id7"><span class="problematic" id="id8">**</span></a>kwargs passed to undrift
+list[1][1](numpy.recarray):  Undrifted(RCC) localizations as created by picasso.render.</p>
+<blockquote>
+<div><p>If undrifing was not succesfull just corresponds to original loclizations.
+Will be saved with extension ‘_locs_render.hdf5’ for usage in picasso.render
+If undrifting was not succesfull only _locs will be saved.</p>
+</div></blockquote>
+</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>list[0][0](dict)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="picasso_addon.localize.undriftrcc_locs">
+<code class="sig-prename descclassname">picasso_addon.localize.</code><code class="sig-name descname">undriftrcc_locs</code><span class="sig-paren">(</span><em class="sig-param">locs</em>, <em class="sig-param">info</em>, <em class="sig-param">**params</em><span class="sig-paren">)</span><a class="headerlink" href="#picasso_addon.localize.undriftrcc_locs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Undrift localization by rcc.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-picasso_addon.special">
+<span id="picasso-addon-special-module"></span><h2>picasso_addon.special module<a class="headerlink" href="#module-picasso_addon.special" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="picasso_addon.special.combine_picks">
+<code class="sig-prename descclassname">picasso_addon.special.</code><code class="sig-name descname">combine_picks</code><span class="sig-paren">(</span><em class="sig-param">locs</em>, <em class="sig-param">info_locs</em>, <em class="sig-param">props</em>, <em class="sig-param">N</em>, <em class="sig-param">compress=False</em><span class="sig-paren">)</span><a class="headerlink" href="#picasso_addon.special.combine_picks" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Combines N picks of picasso ‘_picked’ file into single pick.</dt><dd><ol class="arabic simple">
+<li><p>Standardized filter (using quantiles on distributions) is applied to corresponding ‘_picked_props’ file.
+Just remaining picks will be combined.</p></li>
+<li><p>Combined groups are saved with extension ‘_picked_stackN’ and meta with paramters is saved in yaml keeping original yaml information from ‘_picked’ file.</p></li>
+</ol>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path_locs</strong> (<em>str</em>) – Path to ‘_picked’ file</p></li>
+<li><p><strong>path_props</strong> (<em>str</em>) – Path to ‘_picked_props’ file</p></li>
+<li><p><strong>N</strong> (<em>int</em>) – N picks will be combined into single pick</p></li>
+<li><p><strong>compress</strong> (<em>bool</em>) – If true all photon values of ‘_picked’ file will be set to mean photon value to avoid addition of noise, that may affect autocorrelation</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>locs_combine</strong></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>pandas.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="picasso_addon.special.lineup">
+<code class="sig-prename descclassname">picasso_addon.special.</code><code class="sig-name descname">lineup</code><span class="sig-paren">(</span><em class="sig-param">locs</em>, <em class="sig-param">info</em><span class="sig-paren">)</span><a class="headerlink" href="#picasso_addon.special.lineup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Redistributes picks along line and adjusts information in info_locs accordingly.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>locs</strong> (<em>pandas.DataFrame</em>) – _picked.hdf5 as generated by picasso.render and loaded as pandas.DataFrame</p></li>
+<li><p><strong>info</strong> (<em>list of dicts</em>) – _picked.yaml as generated by picasso.render and loaded as list of dicts</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul>
+<li><p><strong>locs_lineup</strong> (<em>pandas.DataFrame</em>) –</p>
+<dl class="simple">
+<dt>Redistributed _picked along line :</dt><dd><ol class="arabic simple">
+<li><p>Median y-coordinate of pick centered on pick-diameter/2 as given in info_locs</p></li>
+<li><p>Median x-coordinate of pick shifted by pick diamter to right pick after pick</p></li>
+</ol>
+</dd>
+</dl>
+</li>
+<li><p><strong>info_lineup</strong> (<em>list of dicts</em>) – Same as info_locs but ‘Height’ changed to pick_diameter and ‘Width’ changed to (#picks x pick_diameter)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="picasso_addon.special.props_add_nn">
+<code class="sig-prename descclassname">picasso_addon.special.</code><code class="sig-name descname">props_add_nn</code><span class="sig-paren">(</span><em class="sig-param">df</em><span class="sig-paren">)</span><a class="headerlink" href="#picasso_addon.special.props_add_nn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds nearest neighbouring group to _props file and saves it with file extension ‘_nn’</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>df</strong> (<em>pandas.DataFrame</em>) – _props DataFrame as generated by modules/pickprops.py from picasso locs_picked file</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>loc_props</strong> – Original DataFrame as in ‘path’ but with nearest neigbour distance (px) as column ‘nn’.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>pandas.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="picasso_addon.special.segment_time">
+<code class="sig-prename descclassname">picasso_addon.special.</code><code class="sig-name descname">segment_time</code><span class="sig-paren">(</span><em class="sig-param">path</em>, <em class="sig-param">noFrames_seg</em><span class="sig-paren">)</span><a class="headerlink" href="#picasso_addon.special.segment_time" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="picasso_addon.special.tile_locs">
+<code class="sig-prename descclassname">picasso_addon.special.</code><code class="sig-name descname">tile_locs</code><span class="sig-paren">(</span><em class="sig-param">path</em>, <em class="sig-param">noTiles</em>, <em class="sig-param">center</em>, <em class="sig-param">width</em><span class="sig-paren">)</span><a class="headerlink" href="#picasso_addon.special.tile_locs" title="Permalink to this definition">¶</a></dt>
+<dd><dl>
+<dt>Assigns group index to quadratic ROIs (tiles) of picasso _locs file.</dt><dd><ol class="arabic">
+<li><p>locs are cropped to region of width ‘width’ in both x&amp;y direction centered around ‘center’</p></li>
+<li><p>Cropped region is split into tiles. Number of tiles is given by square of ‘noTiles’.</p></li>
+<li><dl>
+<dt>group index will be assigned to locs file according to tiles and locs_picked is returned and saved.</dt><dd><div class="line-block">
+<div class="line-block">
+<div class="line">|     |</div>
+</div>
+<div class="line">2   |  3  |</div>
+</div>
+<p><a href="#id9"><span class="problematic" id="id10">|______|_____|</span></a>
+|      |     |
+|  0   |  1  |
+<a href="#id11"><span class="problematic" id="id12">|______|_____|</span></a></p>
+</dd>
+</dl>
+</li>
+<li><p>Tiled file is saved with extension ‘_picked_tile’ and meta with containing paramters is saved in yaml keeping original yaml information</p></li>
+</ol>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> (<em>str</em>) – Path to _locs file</p></li>
+<li><p><strong>NoTiles</strong> (<em>int</em>) – Number of tiles (in one dimension)</p></li>
+<li><p><strong>center</strong> (<em>list</em>) – [x,y] in px as center for cropped region</p></li>
+<li><p><strong>width</strong> (<em>float</em>) – Full width of cropped region</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>locs_picked</strong> – Cropped _locs file with group index assigned according to tiles</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>pandas.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">picasso_addon</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="contact.html">Contact</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Modules</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="modules.html">API</a><ul>
+      <li>Previous: <a href="modules.html" title="previous chapter">API</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Florian Stehr.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/picasso_addon.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
