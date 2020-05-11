@@ -20,14 +20,13 @@ except ImportError:
 def identify_in_image(image, box):
     '''
     Calculate net-gradient of all boxes in one image that have a local maximum in its center pixel.
-
+    
     Args:
         image (np.array): One image of movie.
         box (uneven int): Box size in pixels.
-
+        
     Returns:
         ng (np.array): Net-gradient of all boxes thath have a local maximum in its center pixel
-
     '''
     y, x = localize.local_maxima(image, box)
     box_half = int(box / 2)
@@ -49,15 +48,14 @@ def autodetect_mng(movie,info,box):
     Automatically detect minimal net-gradient for localization. 
     Based on net-gradient distribution of all boxes in raw movie using identify_in_image().
     Distribution is taken from 10 frames evenly distributed over total aquisition time.
-
+    
     Args:
-        movie (io.TiffMultiMap): Movie object as created by picasso.io.load_movie()
+        movie (io.TiffMultiMap): Movie object as created by picasso.io.load_movie().
         info (list): Info file as created by picasso.io.load_movie()
         box (uneven int): Box size in pixels.
-
+        
     Returns:
-        mng (int): Minimal net gradient
-
+		mng (int): Minimal net gradient
     '''
 
     ### Get the distribution of netgradients in all boxes for 10 frames evenly distributed over total aquisition time.
@@ -96,7 +94,18 @@ def autodetect_mng(movie,info,box):
 #%%
 def localize_movie(movie,**params):
     '''
-    Localize movie by least squares fit.
+    Localize raw movie using picasso.gausslq
+    
+    Args:
+        movie (io.TiffMultiMap): Movie object as created by picasso.io.load_movie().
+    
+    Keyword Args:
+        localize (bool=True): Localize raw movie (see picasso.localize)
+        baseline (int=70): Camera spec. baseline (see picasso.localize).
+    Returns:
+        list: 
+		- [0] Dictionary of kwargs passed to function
+        - [1] Localizations (numpy.array) according to picasso.gausslq
     '''
     ### Set standard paramters if not given with function call
     standard_params={'baseline':70,
@@ -217,7 +226,7 @@ def main(file,info,path,**params):
                                         2) _locs.hdf5 loaded with picasso.io.load_locs()
         info(list(dicts)):         Info to raw movie/_locs.hdf5 loaded with picasso.io.load_movie() or picasso.io.load_locs()
     
-    **kwargs: If not explicitly specified set to default, also when specified as None
+    kwargs: If not explicitly specified set to default, also when specified as None
         localize(bool=True)        Localize raw movie (see picasso.localize)
         baseline(int=70):          Camera spec. baseline (see picasso.localize).
         gain(float=1):             Camera spec. EM gain (see picasso.localize)

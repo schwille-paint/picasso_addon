@@ -5,7 +5,15 @@
 
 Documentation: picasso_addon
 ============================
-Here is a simple description of what it's about...
+Addon for `picasso <https://github.com/jungmannlab/picasso.git>`_ including:
+	* Automatized net-gradient selection for localization
+	* Automatized selection of clusters (picks) based on picasso.render via number of localizations
+	* Automatized data analysis pipelines (e.g. for lbFCS, SPT)
+	* Some special functions
+		* Adding nearest neighbors
+		* Combination of clusters
+		* ...
+
 
 .. toctree::
    :maxdepth: 2
