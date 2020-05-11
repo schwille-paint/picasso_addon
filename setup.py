@@ -13,6 +13,9 @@ setup(
         "Programming Language :: Python :: 3.7",
         "Operating System :: OS Independent",
    ],
-   install_requires=['picasso'], #external packages as dependencies
+   install_requires = [
+        # Github picasso repo
+        'picasso @ git+ssh://git@github.com/jungmannlab/picasso.git#egg=picasso-0.1'
+    ]
 )
 
