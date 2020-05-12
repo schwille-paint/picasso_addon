@@ -6,5 +6,7 @@ This package provides ... why do I not see this fucking document????
 .. toctree::
    :maxdepth: 2
    
-   contact
+   _source/modules
+   _source/contact
+   
 
