@@ -4,4 +4,7 @@ __pycache__
 /build
 /dist
 .gitignore~
+/docs/_build
+/docs/_static
+/docs/_templates
 

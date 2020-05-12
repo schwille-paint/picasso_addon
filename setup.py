@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
    name='picasso_addon',
-   version='0.1',
+   version='0.1.1',
    description='Some addons for picasso',
    license="Max Planck Institute of Biochemistry",
    author='Stehr Florian',

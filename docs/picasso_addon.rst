@@ -1,6 +1,3 @@
-Modules
-^^^^^^^
-
 picasso\_addon\.autopick module
 -------------------------------
 
