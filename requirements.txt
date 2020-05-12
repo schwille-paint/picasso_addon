@@ -11,3 +11,4 @@ pandas==0.25.3
 dask==2.9.2
 fastparquet==0.3.2
 sphinx-rtd-theme==0.4.3
+PyQt5
