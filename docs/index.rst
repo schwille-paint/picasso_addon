@@ -9,7 +9,7 @@ picasso_addon: Addons for picasso
 This package provides
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 2
    
    modules
 
