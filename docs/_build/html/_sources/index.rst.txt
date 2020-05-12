@@ -3,8 +3,10 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to picasso_addon's documentation!
-=========================================
+picasso_addon: Addons for picasso
+=================================
+
+This package provides
 
 .. toctree::
    :maxdepth: 2
