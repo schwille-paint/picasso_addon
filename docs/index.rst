@@ -1,19 +1,10 @@
 picasso_addon: Addons for picasso
 =================================
 
-This package provides ... why do I not see this document????
+This package provides ... why do I not see this fucking document????
 
 .. toctree::
    :maxdepth: 2
    
-   modules
-   content
+   contact
 
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
