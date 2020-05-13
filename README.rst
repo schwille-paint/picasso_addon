@@ -9,10 +9,10 @@ This package provides some further functionalities based on `picasso <https://gi
 Installation
 ^^^^^^^^^^^^
 
-Prepare environment
--------------------
+Prepare conda environment
+-------------------------
 
-1. Activate the conda environment in which you want picasso_addon to be installed::
+1. Activate the `conda <https://www.anaconda.com/>`_ environment in which you want picasso_addon to be installed::
 	
 	conda activate <envname>
 	
