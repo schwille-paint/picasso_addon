@@ -1,11 +1,17 @@
-picasso_addon: Addons for picasso
+picasso_addon: Picasso extensions
 =================================
 
-This package provides ... why do I not see this fucking document????
+This package provides some further functionalities based on `picasso <https://github.com/jungmannlab/picasso>`_ including:
+
+- :ref:`Automated net-gradient detection <automng>` for picasso.localize
+- :ref:`Automated cluster detection <autopick>` (picks) based on picasso.render
 
 .. toctree::
    :maxdepth: 2
+   :caption: Contents
    
+   installation
+   howto
    modules
    contact
 
