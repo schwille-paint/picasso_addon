@@ -30,4 +30,4 @@ picasso\_addon\.special
 .. automodule:: picasso_addon.special
     :members:
     :undoc-members:
-    :show-inheritance:
+    :show-inheritance:	
