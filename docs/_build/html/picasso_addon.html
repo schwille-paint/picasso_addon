@@ -84,13 +84,15 @@
               
             
             
-              <ul class="current">
+              <p class="caption"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="howto.html">Usage</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="modules.html">API</a><ul class="current">
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Submodules</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#module-picasso_addon.autopick">picasso_addon.autopick</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-picasso_addon.io">picasso_addon.io</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-picasso_addon.localize">picasso_addon.localize</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-picasso_addon.special">picasso_addon.special</a></li>
 </ul>
 </li>
 </ul>
@@ -169,23 +171,46 @@
 <dl class="attribute">
 <dt id="picasso_addon.autopick.check_spots">
 <code class="sig-prename descclassname">picasso_addon.autopick.</code><code class="sig-name descname">check_spots</code><a class="headerlink" href="#picasso_addon.autopick.check_spots" title="Permalink to this definition">¶</a></dt>
-<dd><p>Check all boxes around x,y for number of localizations, active pixels and center of mass position</p>
+<dd><p>Check all boxes around x,y for number of localizations, active pixels and center of mass position.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>frame</strong> (<em>np.array</em>) – Subpixel rendered localization image.</p></li>
+<li><p><strong>y</strong> (<em>int</em>) – Box center y-coordinate (row)</p></li>
+<li><p><strong>x</strong> (<em>int</em>) – Box center x-coordinate (column)</p></li>
+<li><p><strong>box</strong> (<em>int</em>) – Box size in subpixels. Must be uneven!</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p>[0] (float): Center of mass y-position as measured from y</p></li>
+<li><p>[1] (float): Center of mass x-position as measured from x</p></li>
+<li><p>[2] (int):   Number of localizations within box</p></li>
+<li><p>[3] (int):   Number of subpixels within box with at least one localization</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="picasso_addon.autopick.coordinate_convert">
 <code class="sig-prename descclassname">picasso_addon.autopick.</code><code class="sig-name descname">coordinate_convert</code><span class="sig-paren">(</span><em class="sig-param">spot_centers</em>, <em class="sig-param">viewport_min</em>, <em class="sig-param">oversampling</em><span class="sig-paren">)</span><a class="headerlink" href="#picasso_addon.autopick.coordinate_convert" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convert spot centers as detected in rendered localizations by given viewport minima and oversampling back to original localization coordinates.</p>
+<dd><p>Convert spot centers as detected in rendered localizations by given viewport minima and oversampling
+back to original localization coordinates.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>spot_centers</strong> (<em>pandas.DataFrame</em>) – Output spotcenters_in_image function.</p></li>
-<li><p><strong>viewport_min</strong> (<em>tuple of len=2</em>) – First tuple of viewport as in picasso.render: viewport=[(min_y,min_x),(max_y,max_x)]</p></li>
+<li><p><strong>spot_centers</strong> (<em>pandas.DataFrame</em>) – Output of function <code class="docutils literal notranslate"><span class="pre">spotcenters_in_image()[0]</span></code>, i.e. spot center coordinates.</p></li>
+<li><p><strong>viewport_min</strong> (<em>tuple</em>) – <code class="docutils literal notranslate"><span class="pre">(min_x,min_y)</span></code> of viewport as in picasso.render.</p></li>
 <li><p><strong>oversampling</strong> (<em>int</em>) – Pixel oversampling as in picasso.render</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p><strong>spot_centers_convert</strong> – Spot centers converted back to orignal localization coordinates.</p>
+<dd class="field-even"><p>spot_centers converted back to orignal localization coordinates.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>pandas.DataFrame</p>
@@ -196,69 +221,85 @@
 <dl class="function">
 <dt id="picasso_addon.autopick.get_picked">
 <code class="sig-prename descclassname">picasso_addon.autopick.</code><code class="sig-name descname">get_picked</code><span class="sig-paren">(</span><em class="sig-param">locs</em>, <em class="sig-param">picks_idx</em>, <em class="sig-param">field='group'</em><span class="sig-paren">)</span><a class="headerlink" href="#picasso_addon.autopick.get_picked" title="Permalink to this definition">¶</a></dt>
-<dd><p>Assign group ID to locs and sort</p>
+<dd><p>Assign group ID to locs according to picks_idx as obtained by <code class="docutils literal notranslate"><span class="pre">query_locs_for_centers()</span></code> and sort.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>locs</strong> (<em>pandas.DataFrame</em>) – Localizations (see picasso.localize) converted to DataFrame for faster sorting.</p></li>
+<li><p><strong>picks_idx</strong> (<em>list</em>) – Single list entries correpond to indices in locs within pick_radius around centers.
+See <code class="docutils literal notranslate"><span class="pre">query_locs_for_centers()</span></code>.</p></li>
+<li><p><strong>field</strong> (<em>str='group'</em>) – Name of column for group ID in output DataFrame.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Picked as in <a class="reference external" href="https://picassosr.readthedocs.io/en/latest/render.html">picasso.render</a>, i.e. original locs with group assigned according to picks defined by picks_idx.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>pandas.DataFrame</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="picasso_addon.autopick.identifyspots_in_image">
 <code class="sig-prename descclassname">picasso_addon.autopick.</code><code class="sig-name descname">identifyspots_in_image</code><a class="headerlink" href="#picasso_addon.autopick.identifyspots_in_image" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="picasso_addon.autopick.main">
-<code class="sig-prename descclassname">picasso_addon.autopick.</code><code class="sig-name descname">main</code><span class="sig-paren">(</span><em class="sig-param">locs</em>, <em class="sig-param">info</em>, <em class="sig-param">path</em>, <em class="sig-param">**params</em><span class="sig-paren">)</span><a class="headerlink" href="#picasso_addon.autopick.main" title="Permalink to this definition">¶</a></dt>
-<dd><p>Cluster detection (pick) in localization list by thresholding in number of localizations per cluster.
-Cluster centers are determined by creating images of localization list with set oversampling.</p>
+<dd><p>Identify boxes above localization threshold in rendered localizations image by using check_spots().</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>locs</strong> (<em>numpy.recarray</em>) – (Undrifted) localization list as created by picasso.localize.</p></li>
-<li><p><strong>info</strong> (<em>list</em><em>(</em><em>dict</em><em>)</em>) – Info to localization list when loaded with picasso.io.load_locs().</p></li>
+<li><p><strong>image</strong> (<em>np.array</em>) – Subpixel rendered localization image.</p></li>
+<li><p><strong>minimum_n_locs</strong> (<em>int</em>) – Number of localization threshold for valid boxes</p></li>
+<li><p><strong>box</strong> (<em>int</em>) – Box size in subpixels. Must be uneven!</p></li>
 </ul>
 </dd>
-</dl>
-<dl>
-<dt><a href="#id1"><span class="problematic" id="id2">**</span></a>kwargs: If not explicitly specified set to default, also when specified as None.</dt><dd><p>oversampling(int=5):            Oversampling for rendering of loclization list, i.e. sub-pixels per pixel of original image.
-pick_box(int=2*oversampling+1): Box length for spot detection in rendered image similar to picasso.localize.
-min_n_locs(float=0.2*NoFrames): Detection threshold for number of localizations in cluster.
-fit_center(bool=False):         If set to False center corresponds to center of mass of of loclizations per sub-pixel</p>
-<blockquote>
-<div><p>If set to True center corresponds to gaussian fit of pick_box area.</p>
-</div></blockquote>
-<dl class="simple">
-<dt>pick_diameter(float=2):         Pick diameter in original pixels, i.e. cluster = localizations within</dt><dd><p>circle around center of diameter = pick_diameter (see picasso.render).</p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p>[0] (int):   Local box maximum y (i.e. box y center coordinate)</p></li>
+<li><p>[1] (int):   Local box maximum x (i.e. box x center coordinate)</p></li>
+<li><p>[2] (float): Center of mass y-position as measured from y</p></li>
+<li><p>[3] (float): Center of mass x-position as measured from x</p></li>
+<li><p>[4] (int):   Number of localizations within box</p></li>
+</ul>
+</p>
 </dd>
-</dl>
-<p>lbfcs(bool=False):              If set to True will overrun min_n_locs and sets it to 0.05*NoFrames.</p>
-</dd>
-<dt>return: list</dt><dd><p>list[0](dict):                  Dict of <a href="#id3"><span class="problematic" id="id4">**</span></a>kwargs passed to function.
-list[1](pandas.DataFrame):      Center positions and number of localizations per pick.</p>
-<blockquote>
-<div><p>Center positions will be saved with extension ‘_autopick.yaml’ for usage in picasso.render</p>
-</div></blockquote>
-<dl class="simple">
-<dt>list[1](pandas.DataFrame):      Picked localizations, i.e. same as original</dt><dd><p>but with group ID defined for each localization in pick.
-Picked localizations will be saved with extension ‘_picked.hdf5’ for usage in picasso.render</p>
-</dd>
-</dl>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>tuple</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="function">
-<dt id="picasso_addon.autopick.query_locs_for_centers">
-<code class="sig-prename descclassname">picasso_addon.autopick.</code><code class="sig-name descname">query_locs_for_centers</code><span class="sig-paren">(</span><em class="sig-param">locs</em>, <em class="sig-param">centers</em>, <em class="sig-param">pick_radius=1</em><span class="sig-paren">)</span><a class="headerlink" href="#picasso_addon.autopick.query_locs_for_centers" title="Permalink to this definition">¶</a></dt>
-<dd><p>Builds up KDtree for locs, queries the tree for localizations within pick_radius (norm of p=2) aorund centers (xy coordinates).
-Output will be list of indices as result of query.
-:param locs: locs as created by picasso.localize with fields ‘x’ and ‘y’
-:type locs: numpy.recarray or pandas.DataFrame
-:param centers: x and y pick center positions
-:type centers: np.array of shape (m,2)
-:param pick_diameter: Pick diameter in px
-:type pick_diameter: float</p>
+<dt id="picasso_addon.autopick.main">
+<code class="sig-prename descclassname">picasso_addon.autopick.</code><code class="sig-name descname">main</code><span class="sig-paren">(</span><em class="sig-param">locs</em>, <em class="sig-param">info</em>, <em class="sig-param">path</em>, <em class="sig-param">**params</em><span class="sig-paren">)</span><a class="headerlink" href="#picasso_addon.autopick.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cluster detection (pick) in localizations by thresholding in number of localizations per cluster.
+Cluster centers are determined by creating images of localization list with set oversampling using picasso.render.</p>
 <dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>locs</strong> (<em>numpy.recarray</em>) – (Undrifted) localization list as created by <a class="reference external" href="https://picassosr.readthedocs.io/en/latest/render.html">picasso.render</a>.</p></li>
+<li><p><strong>info</strong> (<em>list</em><em>(</em><em>dict</em><em>)</em>) – Info to localization list when loaded with picasso.io.load_locs().</p></li>
+</ul>
+</dd>
+<dt class="field-even">Keyword Arguments</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>oversampling</strong> (<em>int=5</em>) – Oversampling for rendering of localization list, i.e. sub-pixels per pixel of original image.</p></li>
+<li><p><strong>pick_box</strong> (<em>int=2*oversampling+1</em>) – Box length for spot detection in rendered image similar to <a class="reference external" href="https://picassosr.readthedocs.io/en/latest/localize.html">picasso.localize</a>.</p></li>
+<li><p><strong>min_n_locs</strong> (<em>float=0.2*NoFrames</em>) – Detection threshold for number of localizations in cluster.
+Standard value is set for <a class="reference external" href="https://www.biorxiv.org/content/10.1101/2020.05.17.100354v1">spt</a>.
+Set to lower value for usual DNA-PAINT signal (see <code class="docutils literal notranslate"><span class="pre">lbfcs</span></code>).</p></li>
+<li><p><strong>fit_center</strong> (<em>bool=False</em>) – False = Center of mass. True = 2D Gaussian fitting of center.</p></li>
+<li><p><strong>pick_diameter</strong> (<em>float=2</em>) – Pick diameter in original pixels.</p></li>
+<li><p><strong>lbfcs</strong> (<em>bool=False</em>) – If set to True will overrun min_n_locs and sets it to 0.05*NoFrames.</p></li>
+</ul>
+</dd>
 <dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p><strong>picks_idx</strong> – List of len(centers). Single list entries correpond to indices in locs within pick_radius around centers.</p>
+<dd class="field-odd"><p><ul class="simple">
+<li><p>[0] (dict):             kwargs passed to function.</p></li>
+<li><p>[1] (pandas.DataFrame): Picked localizations, saved with extension _picked.hdf5.</p></li>
+<li><p>[2] (pandas.DataFrame): Center positions and number of localizations per pick, saved with extension _autopick.yaml.</p></li>
+<li><p>[3] (str):              Full save path.</p></li>
+</ul>
+</p>
 </dd>
 <dt class="field-even">Return type</dt>
 <dd class="field-even"><p>list</p>
@@ -267,9 +308,53 @@ Output will be list of indices as result of query.
 </dd></dl>
 
 <dl class="function">
+<dt id="picasso_addon.autopick.query_locs_for_centers">
+<code class="sig-prename descclassname">picasso_addon.autopick.</code><code class="sig-name descname">query_locs_for_centers</code><span class="sig-paren">(</span><em class="sig-param">locs</em>, <em class="sig-param">centers</em>, <em class="sig-param">pick_radius=1</em><span class="sig-paren">)</span><a class="headerlink" href="#picasso_addon.autopick.query_locs_for_centers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Builds up KDtree for locs, queries the tree for localizations within pick_radius (norm of p=2) around centers (xy coordinates).
+Output will be list of indices as result of query.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>locs</strong> (<em>numpy.recarray</em><em> or </em><em>pandas.DataFrame</em>) – Localizations as created by picasso.localize with fields <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code>.</p></li>
+<li><p><strong>centers</strong> (<em>np.array</em>) – Pick center coordinates (x,y)</p></li>
+<li><p><strong>pick_radius</strong> (<em>float=1</em>) – Pick diameter in px.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>List of <code class="docutils literal notranslate"><span class="pre">len(centers)</span></code>. Single list entries correpond to indices in <code class="docutils literal notranslate"><span class="pre">locs</span></code> of localizations
+within <code class="docutils literal notranslate"><span class="pre">pick_radius</span></code> around <code class="docutils literal notranslate"><span class="pre">centers</span></code>. Hence every list indicates one pick (group).</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
 <dt id="picasso_addon.autopick.spotcenters_in_image">
 <code class="sig-prename descclassname">picasso_addon.autopick.</code><code class="sig-name descname">spotcenters_in_image</code><span class="sig-paren">(</span><em class="sig-param">image</em>, <em class="sig-param">box</em>, <em class="sig-param">min_nlocs</em>, <em class="sig-param">fit=False</em><span class="sig-paren">)</span><a class="headerlink" href="#picasso_addon.autopick.spotcenters_in_image" title="Permalink to this definition">¶</a></dt>
-<dd><p>Identify picks in rendered image according to number of localizations.</p>
+<dd><p>Get pick center coordinates in subpixel rendered localization image by either
+calculating center of mass or fitting 2D Gaussian.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>image</strong> (<em>np.array</em>) – Subpixel rendered localization image.</p></li>
+<li><p><strong>box</strong> (<em>int</em>) – Box size in subpixels. Must be uneven!</p></li>
+<li><p><strong>min_nlocs</strong> (<em>int</em>) – Number of localization threshold for valid boxes</p></li>
+<li><p><strong>fit</strong> (<em>bool=False</em>) – Employ 2D gaussian fitting? Normally not better performing. If False only center of mass position.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p>[0] (pandas.DataFrame): Spot center coordinates (image units) and number of localizations (x,y,n_locs)</p></li>
+<li><p>[1] (bool): True if fit was performed</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
@@ -282,24 +367,27 @@ Output will be list of indices as result of query.
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>readpath</strong> (<em>str</em>) – Path to .hdf5 file as generated by Picasso</p></li>
+<li><p><strong>path</strong> (<em>str</em>) – Path to .hdf5 file as generated by <a class="reference external" href="https://picassosr.readthedocs.io/en/latest/localize.html">picasso.localize</a></p></li>
 <li><p><strong>container</strong> (<em>str</em>) – <dl class="simple">
-<dt>Must be set to:</dt><dd><ul>
-<li><p>’locs’ for ‘_locs’, ‘_render’ and ‘_picked’ .hdf5 files as generated by picasso.render</p></li>
-<li><p>’groups’ for ‘_pickprops’ .hdf5 files as generated by picasso.render</p></li>
+<dt>Name of dataset within .hdf5 container. Must be set to:</dt><dd><ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">'locs'</span></code> for _locs, _render and _picked .hdf5 files as generated by <a class="reference external" href="https://picassosr.readthedocs.io/en/latest/render.html">picasso.render</a>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'groups'</span></code> for _pickprops.hdf5 files as generated by <a class="reference external" href="https://picassosr.readthedocs.io/en/latest/render.html">picasso.render</a>.</p></li>
+<li><p>Defaults to <code class="docutils literal notranslate"><span class="pre">'locs'</span></code>.</p></li>
 </ul>
 </dd>
 </dl>
-<p>Defaults to ‘locs’</p>
 </p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p><ul class="simple">
-<li><p><strong>locs</strong> (<em>pandas.DataFrame</em>) – Localization list stored under ‘locs’ in .hdf5 file</p></li>
-<li><p><strong>locs_info</strong> (<em>list</em>) – list of dictionaries contained in .yaml corresponding to .hdf5 file</p></li>
+<li><p>[0] (pandas.DataFrame): Localizations stored under <code class="docutils literal notranslate"><span class="pre">'locs'</span></code> in .hdf5 file</p></li>
+<li><p>[1] (list): List of dictionaries contained in .yaml corresponding to .hdf5 file</p></li>
 </ul>
 </p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>tuple</p>
 </dd>
 </dl>
 </dd></dl>
@@ -307,15 +395,37 @@ Output will be list of indices as result of query.
 <dl class="function">
 <dt id="picasso_addon.io.save_locs">
 <code class="sig-prename descclassname">picasso_addon.io.</code><code class="sig-name descname">save_locs</code><span class="sig-paren">(</span><em class="sig-param">path</em>, <em class="sig-param">locs</em>, <em class="sig-param">info</em>, <em class="sig-param">mode=None</em><span class="sig-paren">)</span><a class="headerlink" href="#picasso_addon.io.save_locs" title="Permalink to this definition">¶</a></dt>
-<dd><p>Save processed df of locs file belonging to origin_path in .hdf5 file and corresponding list of dictionaries in .yaml file.</p>
+<dd><p>Save localizations in .hdf5 container and corresponding info in .yaml.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>locs</strong> (<em>pandas.DataFrame</em>) – locs (as in picasso) but converted to pd.DataFrame format</p></li>
-<li><p><strong>info</strong> (<em>list</em><em>(</em><em>dict1</em><em>,</em><em>dict2</em><em>,</em><em>..</em><em>)</em>) – List of dictionaries belonging to locs, will be stored in .yaml</p></li>
-<li><p><strong>path</strong> (<em>str</em>) – Path in which locs are stored</p></li>
-<li><p><strong>mode</strong> (<em>str</em>) – If mode=’picasso_compatible’ locs will be stored as np.rec_array to be readable with picasso.filter module</p></li>
+<li><p><strong>locs</strong> (<em>pandas.DataFrame</em>) – Localizations as obtained by <a class="reference external" href="https://picassosr.readthedocs.io/en/latest/localize.html">picasso.localize</a> but converted to pands.DataFrame.</p></li>
+<li><p><strong>info</strong> (<em>list</em>) – Info as list of dicts, will be stored in .yaml</p></li>
+<li><p><strong>path</strong> (<em>str</em>) – Full save path.</p></li>
+<li><p><strong>mode</strong> (<em>str</em>) – If <code class="docutils literal notranslate"><span class="pre">mode='picasso_compatible'</span></code> localizations will be stored as nmpy.rec_array to
+be readable with <a class="reference external" href="https://picassosr.readthedocs.io/en/latest/filter.html">picasso.filter</a>.</p></li>
 </ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="picasso_addon.io.save_picks">
+<code class="sig-prename descclassname">picasso_addon.io.</code><code class="sig-name descname">save_picks</code><span class="sig-paren">(</span><em class="sig-param">locs</em>, <em class="sig-param">pick_diameter</em>, <em class="sig-param">path</em><span class="sig-paren">)</span><a class="headerlink" href="#picasso_addon.io.save_picks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save pick centers in .yaml file so they can be loaded with <a class="reference external" href="https://picassosr.readthedocs.io/en/latest/render.html">picasso.render</a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>locs</strong> (<em>pandas.DataFrame</em><em> or </em><em>numpy.array</em>) – Spot center coordinates. Must contain fields <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code>.</p></li>
+<li><p><strong>pick_diameter</strong> (<em>int</em>) – Pick diameter in pixel as in <a class="reference external" href="https://picassosr.readthedocs.io/en/latest/render.html">picasso.render</a>.</p></li>
+<li><p><strong>path</strong> (<em>str</em>) – Full save path.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Converted locs with entries <code class="docutils literal notranslate"><span class="pre">'Diameter'</span></code>, <code class="docutils literal notranslate"><span class="pre">'Centers'</span></code> and <code class="docutils literal notranslate"><span class="pre">'Shape'</span></code></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict</p>
 </dd>
 </dl>
 </dd></dl>
@@ -376,14 +486,14 @@ Distribution is taken from 10 frames evenly distributed over total aquisition ti
 </dd>
 <dt class="field-even">Keyword Arguments</dt>
 <dd class="field-even"><ul class="simple">
-<li><p><strong>localize</strong> (<em>bool=True</em>) – Localize raw movie (see picasso.localize)</p></li>
-<li><p><strong>baseline</strong> (<em>int=70</em>) – Camera spec. baseline (see picasso.localize).</p></li>
+<li><p><strong>localize</strong> (<em>bool=True</em>) – Localize raw movie (see <a class="reference external" href="https://picassosr.readthedocs.io/en/latest/localize.html">picasso.localize</a>)</p></li>
+<li><p><strong>baseline</strong> (<em>int=70</em>) – Camera spec. baseline (see <a class="reference external" href="https://picassosr.readthedocs.io/en/latest/localize.html">picasso.localize</a>).</p></li>
 </ul>
 </dd>
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p><ul class="simple">
-<li><p>[0] Dictionary of kwargs passed to function</p></li>
-<li><p>[1] Localizations (numpy.array) according to picasso.gausslq</p></li>
+<li><p>[0] (dict): kwargs passed to function</p></li>
+<li><p>[1] (numpy.array): Localizations as obtained by picasso.gausslq</p></li>
 </ul>
 </p>
 </dd>
@@ -419,13 +529,13 @@ Distribution is taken from 10 frames evenly distributed over total aquisition ti
 </dd>
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p><ul>
-<li><p>[0][0] Dict of <a href="#id5"><span class="problematic" id="id6">**</span></a>kwargs passed to localize</p></li>
+<li><p>[0][0] Dict of kwargs passed to localize</p></li>
 <li><div class="line-block">
 <div class="line">[0][1] Localizations (numpy.array) as created by picasso.localize</div>
 <div class="line">Will be saved with extension ‘_locs.hdf5’ for usage in picasso.render</div>
 </div>
 </li>
-<li><p>[1][0] Dict of <a href="#id7"><span class="problematic" id="id8">**</span></a>kwargs passed to undriftrcc_locs</p></li>
+<li><p>[1][0] Dict of kwargs passed to undriftrcc_locs</p></li>
 <li><div class="line-block">
 <div class="line">[1][1] Undrifted(RCC) localizations as created by picasso.render.</div>
 <div class="line">If undrifing was not succesfull just corresponds to original loclizations.</div>
@@ -468,60 +578,6 @@ Distribution is taken from 10 frames evenly distributed over total aquisition ti
 </dd>
 </dl>
 </dd></dl>
-
-</div>
-<div class="section" id="module-picasso_addon.special">
-<span id="picasso-addon-special"></span><h2>picasso_addon.special<a class="headerlink" href="#module-picasso_addon.special" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="picasso_addon.special.combine_picks">
-<code class="sig-prename descclassname">picasso_addon.special.</code><code class="sig-name descname">combine_picks</code><span class="sig-paren">(</span><em class="sig-param">locs</em>, <em class="sig-param">info_locs</em>, <em class="sig-param">props</em>, <em class="sig-param">N</em>, <em class="sig-param">compress=False</em><span class="sig-paren">)</span><a class="headerlink" href="#picasso_addon.special.combine_picks" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Combines N picks of picasso ‘_picked’ file into single pick.</dt><dd><ol class="arabic simple">
-<li><p>Standardized filter (using quantiles on distributions) is applied to corresponding ‘_picked_props’ file.
-Just remaining picks will be combined.</p></li>
-<li><p>Combined groups are saved with extension ‘_picked_stackN’ and meta with paramters is saved in yaml keeping original yaml information from ‘_picked’ file.</p></li>
-</ol>
-</dd>
-</dl>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>path_locs</strong> (<em>str</em>) – Path to ‘_picked’ file</p></li>
-<li><p><strong>path_props</strong> (<em>str</em>) – Path to ‘_picked_props’ file</p></li>
-<li><p><strong>N</strong> (<em>int</em>) – N picks will be combined into single pick</p></li>
-<li><p><strong>compress</strong> (<em>bool</em>) – If true all photon values of ‘_picked’ file will be set to mean photon value to avoid addition of noise, that may affect autocorrelation</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><strong>locs_combine</strong></p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>pandas.DataFrame</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="function">
-<dt id="picasso_addon.special.props_add_nn">
-<code class="sig-prename descclassname">picasso_addon.special.</code><code class="sig-name descname">props_add_nn</code><span class="sig-paren">(</span><em class="sig-param">df</em><span class="sig-paren">)</span><a class="headerlink" href="#picasso_addon.special.props_add_nn" title="Permalink to this definition">¶</a></dt>
-<dd><p>Adds nearest neighbouring group to _props file and saves it with file extension ‘_nn’</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>df</strong> (<em>pandas.DataFrame</em>) – _props DataFrame as generated by modules/pickprops.py from picasso locs_picked file</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><strong>loc_props</strong> – Original DataFrame as in ‘path’ but with nearest neigbour distance (px) as column ‘nn’.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>pandas.DataFrame</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="function">
-<dt id="picasso_addon.special.segment_time">
-<code class="sig-prename descclassname">picasso_addon.special.</code><code class="sig-name descname">segment_time</code><span class="sig-paren">(</span><em class="sig-param">path</em>, <em class="sig-param">noFrames_seg</em><span class="sig-paren">)</span><a class="headerlink" href="#picasso_addon.special.segment_time" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
 
 </div>
 </div>

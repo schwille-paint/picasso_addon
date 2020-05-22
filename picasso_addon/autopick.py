@@ -1,3 +1,12 @@
+'''
+.. _picasso.localize:
+    https://picassosr.readthedocs.io/en/latest/localize.html
+.. _picasso.render:
+    https://picassosr.readthedocs.io/en/latest/render.html
+.. _spt:
+    https://www.biorxiv.org/content/10.1101/2020.05.17.100354v1
+'''
+
 import os
 import numpy as np
 import numba as numba
@@ -13,9 +22,22 @@ import picasso_addon.io as addon_io
 
 #%%
 @numba.jit(nopython=True, nogil=True, cache=False)
-def check_spots(frame, y, x, box):
+def check_spots(frame,y,x,box):
     '''
-    Check all boxes around x,y for number of localizations, active pixels and center of mass position
+    Check all boxes around x,y for number of localizations, active pixels and center of mass position.
+    
+    Args:
+        frame (np.array): Subpixel rendered localization image.
+        y (int):          Box center y-coordinate (row)
+        x (int):          Box center x-coordinate (column)
+        box (int):        Box size in subpixels. Must be uneven!
+        
+    Returns:
+        tuple: 
+            - [0] (float): Center of mass y-position as measured from y
+            - [1] (float): Center of mass x-position as measured from x
+            - [2] (int):   Number of localizations within box
+            - [3] (int):   Number of subpixels within box with at least one localization
     '''
     box_half = int(box / 2)
     dx = np.zeros(len(x), dtype=np.float32)
@@ -40,7 +62,20 @@ def check_spots(frame, y, x, box):
 @numba.jit(nopython=True, nogil=True, cache=False)
 def identifyspots_in_image(image, minimum_n_locs, box):
     '''
-    
+    Identify boxes above localization threshold in rendered localizations image by using check_spots().
+	
+	Args:
+		image (np.array): Subpixel rendered localization image.
+		minimum_n_locs (int): Number of localization threshold for valid boxes
+		box (int): Box size in subpixels. Must be uneven!
+	
+	Returns:
+		tuple:
+    		- [0] (int):   Local box maximum y (i.e. box y center coordinate)
+    		- [1] (int):   Local box maximum x (i.e. box x center coordinate)
+    		- [2] (float): Center of mass y-position as measured from y
+    		- [3] (float): Center of mass x-position as measured from x
+    		- [4] (int):   Number of localizations within box	
     '''
     ### Get local maxima in each box by covering complete image
     y,x=localize.local_maxima(image, box)
@@ -59,8 +94,18 @@ def identifyspots_in_image(image, minimum_n_locs, box):
 #%%
 def spotcenters_in_image(image,box,min_nlocs,fit=False):
     '''
-    Identify picks in rendered image according to number of localizations.
-
+    Get pick center coordinates in subpixel rendered localization image by either 
+    calculating center of mass or fitting 2D Gaussian.
+    
+    Args:
+  		image (np.array): Subpixel rendered localization image.
+  		box (int):        Box size in subpixels. Must be uneven!
+  		min_nlocs (int):  Number of localization threshold for valid boxes
+  		fit (bool=False): Employ 2D gaussian fitting? Normally not better performing. If False only center of mass position.
+    Returns:
+        tuple:
+            - [0] (pandas.DataFrame): Spot center coordinates (image units) and number of localizations (x,y,n_locs)
+            - [1] (bool): True if fit was performed
     '''
     image=image.astype(float)
     ### 1. Cover complete image with boxes and identify local maxima
@@ -120,22 +165,16 @@ def spotcenters_in_image(image,box,min_nlocs,fit=False):
 #%%
 def coordinate_convert(spot_centers,viewport_min,oversampling):
     '''
-    Convert spot centers as detected in rendered localizations by given viewport minima and oversampling back to original localization coordinates.
+    Convert spot centers as detected in rendered localizations by given viewport minima and oversampling 
+    back to original localization coordinates.
     
-    Parameters
-    ---------
-    spot_centers : pandas.DataFrame
-        Output spotcenters_in_image function.
-    viewport_min: tuple of len=2
-        First tuple of viewport as in picasso.render: viewport=[(min_y,min_x),(max_y,max_x)]
-    oversampling: int
-        Pixel oversampling as in picasso.render
-    
-    Returns
-    -------
-    spot_centers_convert: pandas.DataFrame
-        Spot centers converted back to orignal localization coordinates.
-    
+    Args:
+        spot_centers (pandas.DataFrame): Output of function ``spotcenters_in_image()[0]``, i.e. spot center coordinates.
+        viewport_min (tuple): ``(min_x,min_y)`` of viewport as in picasso.render.
+        oversampling (int): Pixel oversampling as in picasso.render
+        
+    Returns:
+        pandas.DataFrame: spot_centers converted back to orignal localization coordinates.
     '''
     spot_centers_convert=spot_centers.copy()
     spot_centers_convert.x=spot_centers.x/oversampling+viewport_min[1]
@@ -145,20 +184,18 @@ def coordinate_convert(spot_centers,viewport_min,oversampling):
 #%%
 def query_locs_for_centers(locs,centers,pick_radius=1):
     '''
-    Builds up KDtree for locs, queries the tree for localizations within pick_radius (norm of p=2) aorund centers (xy coordinates).
+    Builds up KDtree for locs, queries the tree for localizations within pick_radius (norm of p=2) around centers (xy coordinates).
     Output will be list of indices as result of query.
-    Parameters
-    ---------
-    locs : numpy.recarray or pandas.DataFrame
-        locs as created by picasso.localize with fields 'x' and 'y'
-    centers: np.array of shape (m,2)
-        x and y pick center positions
-    pick_diameter: float
-        Pick diameter in px
-    Returns
-    -------
-    picks_idx: list
-        List of len(centers). Single list entries correpond to indices in locs within pick_radius around centers.
+    
+    Args:
+        locs (numpy.recarray or pandas.DataFrame): Localizations as created by picasso.localize with fields ``x`` and ``y``.
+        centers (np.array):                        Pick center coordinates (x,y)
+        pick_radius (float=1):                     Pick diameter in px.
+    
+    Return:
+        list: 
+            List of ``len(centers)``. Single list entries correpond to indices in ``locs`` of localizations 
+            within ``pick_radius`` around ``centers``. Hence every list indicates one pick (group).
     '''
     
     #### Prepare data for KDtree
@@ -172,7 +209,16 @@ def query_locs_for_centers(locs,centers,pick_radius=1):
 #%%
 def get_picked(locs,picks_idx,field='group'):
     '''
-    Assign group ID to locs and sort
+    Assign group ID to locs according to picks_idx as obtained by ``query_locs_for_centers()`` and sort.
+    
+    Args:
+        locs (pandas.DataFrame): Localizations (see picasso.localize) converted to DataFrame for faster sorting.
+        picks_idx (list): 		 Single list entries correpond to indices in locs within pick_radius around centers. 
+                                 See ``query_locs_for_centers()``.
+        field (str='group'):     Name of column for group ID in output DataFrame.
+    
+    Returns:
+        pandas.DataFrame: Picked as in `picasso.render`_, i.e. original locs with group assigned according to picks defined by picks_idx.
     '''
     locs_picked=locs.copy()
 
@@ -191,31 +237,30 @@ def get_picked(locs,picks_idx,field='group'):
 #%%
 def main(locs,info,path,**params):
     '''
-    Cluster detection (pick) in localization list by thresholding in number of localizations per cluster.
-    Cluster centers are determined by creating images of localization list with set oversampling.
+    Cluster detection (pick) in localizations by thresholding in number of localizations per cluster.
+    Cluster centers are determined by creating images of localization list with set oversampling using picasso.render.
     
-    
-    args:
-        locs(numpy.recarray):           (Undrifted) localization list as created by picasso.localize.
+    Args:
+        locs(numpy.recarray):           (Undrifted) localization list as created by `picasso.render`_.
         info(list(dict)):               Info to localization list when loaded with picasso.io.load_locs().
     
-    **kwargs: If not explicitly specified set to default, also when specified as None.
-        oversampling(int=5):            Oversampling for rendering of loclization list, i.e. sub-pixels per pixel of original image.
-        pick_box(int=2*oversampling+1): Box length for spot detection in rendered image similar to picasso.localize. 
+    Keyword Arguments:
+        oversampling(int=5):            Oversampling for rendering of localization list, i.e. sub-pixels per pixel of original image.
+        pick_box(int=2*oversampling+1): Box length for spot detection in rendered image similar to `picasso.localize`_.
         min_n_locs(float=0.2*NoFrames): Detection threshold for number of localizations in cluster.
-        fit_center(bool=False):         If set to False center corresponds to center of mass of of loclizations per sub-pixel 
-                                        If set to True center corresponds to gaussian fit of pick_box area.
-        pick_diameter(float=2):         Pick diameter in original pixels, i.e. cluster = localizations within 
-                                        circle around center of diameter = pick_diameter (see picasso.render).
+                                        Standard value is set for `spt`_. 
+                                        Set to lower value for usual DNA-PAINT signal (see ``lbfcs``).
+        fit_center(bool=False):         False = Center of mass. True = 2D Gaussian fitting of center.
+        pick_diameter(float=2):         Pick diameter in original pixels.
         lbfcs(bool=False):              If set to True will overrun min_n_locs and sets it to 0.05*NoFrames.
-    
-    return: list
-        list[0](dict):                  Dict of **kwargs passed to function.
-        list[1](pandas.DataFrame):      Center positions and number of localizations per pick.
-                                        Center positions will be saved with extension '_autopick.yaml' for usage in picasso.render
-        list[1](pandas.DataFrame):      Picked localizations, i.e. same as original 
-                                        but with group ID defined for each localization in pick.
-                                        Picked localizations will be saved with extension '_picked.hdf5' for usage in picasso.render
+        
+    Returns:
+        list:
+            - [0] (dict):             kwargs passed to function.
+            - [1] (pandas.DataFrame): Picked localizations, saved with extension _picked.hdf5.
+            - [2] (pandas.DataFrame): Center positions and number of localizations per pick, saved with extension _autopick.yaml.
+            - [3] (str):              Full save path.
+
     '''
     ### Path of file that is processed
     path=os.path.splitext(path)[0]
@@ -284,10 +329,10 @@ def main(locs,info,path,**params):
                                params['oversampling'],
                                )
     ### Save converted centers as picks.yaml for later usage in picasso.render
-    addon_io._save_picks(centers,
-                         params['pick_diameter'],
-                         path+'_autopick.yaml',
-                         )
+    addon_io.save_picks(centers,
+                        params['pick_diameter'],
+                        path+'_autopick.yaml',
+                        )
     
     ### Query locs for centers
     print('Build up and query KDtree ...')

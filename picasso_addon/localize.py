@@ -1,3 +1,12 @@
+'''
+.. _picasso.localize:
+    https://picassosr.readthedocs.io/en/latest/localize.html
+.. _picasso.render:
+    https://picassosr.readthedocs.io/en/latest/render.html
+.. _spt:
+    https://www.biorxiv.org/content/10.1101/2020.05.17.100354v1
+'''
+
 import os
 import numba
 import numpy as np
@@ -100,12 +109,13 @@ def localize_movie(movie,**params):
         movie (io.TiffMultiMap): Movie object as created by picasso.io.load_movie().
     
     Keyword Args:
-        localize (bool=True): Localize raw movie (see picasso.localize)
-        baseline (int=70): Camera spec. baseline (see picasso.localize).
+        localize (bool=True): Localize raw movie (see `picasso.localize`_)
+        baseline (int=70): Camera spec. baseline (see `picasso.localize`_).
+    
     Returns:
         list: 
-		- [0] Dictionary of kwargs passed to function
-        - [1] Localizations (numpy.array) according to picasso.gausslq
+		- [0] (dict): kwargs passed to function
+        - [1] (numpy.array): Localizations as obtained by picasso.gausslq
     '''
     ### Set standard paramters if not given with function call
     standard_params={'baseline':70,
@@ -246,10 +256,10 @@ def main(file,info,path,**params):
     
     Returns: 
         list:
-        - [0][0] Dict of **kwargs passed to localize
+        - [0][0] Dict of kwargs passed to localize
         - | [0][1] Localizations (numpy.array) as created by picasso.localize
           | Will be saved with extension '_locs.hdf5' for usage in picasso.render
-        - [1][0] Dict of **kwargs passed to undriftrcc_locs        
+        - [1][0] Dict of kwargs passed to undriftrcc_locs        
         - | [1][1] Undrifted(RCC) localizations as created by picasso.render. 
           | If undrifing was not succesfull just corresponds to original loclizations.
           | Will be saved with extension '_locs_render.hdf5' for usage in picasso.render                            

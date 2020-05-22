@@ -22,12 +22,4 @@ picasso\_addon\.localize
 .. automodule:: picasso_addon.localize
     :members:
     :undoc-members:
-    :show-inheritance:
-
-picasso\_addon\.special
------------------------
-
-.. automodule:: picasso_addon.special
-    :members:
-    :undoc-members:
     :show-inheritance:	
