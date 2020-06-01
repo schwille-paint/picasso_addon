@@ -15,7 +15,7 @@ Please refer to the `readthedocs <https://picasso-addon.readthedocs.io/en/latest
 Installation
 ^^^^^^^^^^^^
 To create a `conda <https://www.anaconda.com/>`_ environment with all the necessary dependencies we provide an 
-:download:`environment.yml <https://github.com/schwille-paint/picasso_addon/blob/master/environment.yml>`.
+`environment.yml <https://github.com/schwille-paint/picasso_addon/blob/master/environment.yml>`_.
  
 To create the environment please open a terminal (Anaconda Prompt on Windows) and type 
 
