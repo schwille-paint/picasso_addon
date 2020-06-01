@@ -15,6 +15,5 @@ setup(
    ],
    install_requires=[
 		"picasso @ git+https://github.com/jungmannlab/picasso.git#egg=picasso-0.3.0",
-   ], 
+   ],
 )
-
