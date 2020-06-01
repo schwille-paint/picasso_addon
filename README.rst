@@ -5,10 +5,10 @@ This package provides some further functionalities based on `picasso <https://gi
 - Automated minimal net-gradient detection for picasso.localize
 - Automated cluster detection based on picasso.render
 
-Please refer to `https://picasso-addon.readthedocs.io/en/latest/index.html`_ for further information.
+Please refer to the `readthedocs <https://picasso-addon.readthedocs.io/en/latest/index.html>`_ for further information.
 
 .. image:: docs/files/software-immob.png
-    :width: 400px
+    :width: 300px
     :align: center
     :alt: Workflow
 
