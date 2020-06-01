@@ -1,10 +1,5 @@
 picasso_addon
 =============
-.. image:: docs/files/software-immob.png
-    :width: 600px
-    :align: center
-    :alt: Workflow
-    
 This package provides some further functionalities based on `picasso <https://github.com/jungmannlab/picasso>`_ python package including:
 
 - Automated minimal net-gradient detection for picasso.localize
@@ -12,6 +7,10 @@ This package provides some further functionalities based on `picasso <https://gi
 
 Please refer to `https://picasso-addon.readthedocs.io/en/latest/index.html`_ for further information.
 
+.. image:: docs/files/software-immob.png
+    :width: 400px
+    :align: center
+    :alt: Workflow
 
 Installation
 ^^^^^^^^^^^^
