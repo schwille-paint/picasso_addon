@@ -52,6 +52,6 @@ If you don't want to install the picasso_addon package into your environment but
 .. code-block:: python
 
     import sys
-    sys.path.append('C:/yourpath/picasso_addon') 
+    sys.path.append('C:/yourpath/picasso_addon')
 
  
