@@ -29,8 +29,7 @@ the picasso_addon.localize.main() function to obtain localized and undrifted loc
 
 Automated minimal net-gradient detection
 ----------------------------------------
-Work in progress ...
-
+We will insert a notebook here to explain what is happening in detail, please be patient.
 
 
 
@@ -52,3 +51,7 @@ The following steps are performed:
 7. We employ a KDtree to get all localizations with a distance less than ``pick_diameter/2`` to the pick center coordinates to obtain the picks.
 8. Last, we give every localization an ID ``group`` corresponding to its pick identity. Localizations not corresponding to a pick are disregarded.
 9. The result is saved as _picked.hdf5.
+
+The `autopick notebook <https://github.com/schwille-paint/picasso_addon/blob/master/scripts/noteboooks/02_autopick.ipynb>`_ guides through the usage of
+the picasso_addon.autopick.main() function to obtain localization clusters above a certain localization threshold from *_render.hdf5 localization lists. 
+If you prefer normal pyhton scripts (e.g. for use in spyder) you can find it `here <https://github.com/schwille-paint/picasso_addon/blob/master/scripts/standard/02_autopick.py>`_.
