@@ -8,3 +8,5 @@ __pycache__
 /docs/_static
 /docs/_templates
 /picasso_addon/.ipynb_checkpoints
+/scripts/standard/.ipynb_checkpoints
+/scripts/notebooks/.ipynb_checkpoints
