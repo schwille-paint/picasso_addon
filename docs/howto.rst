@@ -54,4 +54,4 @@ The following steps are performed:
 
 The `autopick notebook <https://github.com/schwille-paint/picasso_addon/blob/master/scripts/noteboooks/02_autopick.ipynb>`_ guides through the usage of
 the picasso_addon.autopick.main() function to obtain localization clusters above a certain localization threshold from *_render.hdf5 localization lists. 
-If you prefer normal pyhton scripts (e.g. for use in spyder) you can find it `here <https://github.com/schwille-paint/picasso_addon/blob/master/scripts/standard/02_autopick.py>`_.
+If you prefer normal python scripts (e.g. for use in spyder) you can find it `here <https://github.com/schwille-paint/picasso_addon/blob/master/scripts/standard/02_autopick.py>`_.
