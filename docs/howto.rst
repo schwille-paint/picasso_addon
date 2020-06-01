@@ -10,6 +10,11 @@ Usage
    :maxdepth: 2
 
 
+Data structure of localization lists
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Please have a look at this `notebook <https://github.com/schwille-paint/picasso_addon/blob/master/scripts/examples/load_datastructure.ipynb>` to learn how to load 
+picassos' localization lists and which observables it contains.
+
 
 Localize and undrift
 ^^^^^^^^^^^^^^^^^^^^
