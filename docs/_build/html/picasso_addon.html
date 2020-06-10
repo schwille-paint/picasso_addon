@@ -59,10 +59,6 @@
           
             
             
-              <div class="version">
-                0.1
-              </div>
-            
           
 
           
@@ -485,7 +481,7 @@ Distribution is taken from 10 frames evenly distributed over total aquisition ti
 </dd>
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p><ul class="simple">
-<li><p>[0] (dict): kwargs passed to function</p></li>
+<li><p>[0] (dict):        kwargs passed to function</p></li>
 <li><p>[1] (numpy.array): Localizations as obtained by picasso.gausslq</p></li>
 </ul>
 </p>
@@ -521,21 +517,11 @@ Distribution is taken from 10 frames evenly distributed over total aquisition ti
 </ul>
 </dd>
 <dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p><ul>
-<li><p>[0][0] Dict of kwargs passed to localize</p></li>
-<li><div class="line-block">
-<div class="line">[0][1] Localizations (numpy.array) as created by picasso.localize</div>
-<div class="line">Will be saved with extension ‘_locs.hdf5’ for usage in picasso.render</div>
-</div>
-</li>
-<li><p>[1][0] Dict of kwargs passed to undriftrcc_locs</p></li>
-<li><div class="line-block">
-<div class="line">[1][1] Undrifted(RCC) localizations as created by picasso.render.</div>
-<div class="line">If undrifing was not succesfull just corresponds to original loclizations.</div>
-<div class="line">Will be saved with extension ‘_locs_render.hdf5’ for usage in picasso.render</div>
-<div class="line">If undrifting was not succesfull only _locs will be saved.</div>
-</div>
-</li>
+<dd class="field-odd"><p><ul class="simple">
+<li><p>[0][0](dict):     kwargs passed to localize_movie()</p></li>
+<li><p>[0][1](dict):     kwargs passed to undriftrcc_locs()</p></li>
+<li><p>[1](numpy.array): Undrifted localization list saved as _render.hdf5 (if <code class="docutils literal notranslate"><span class="pre">undrift</span></code> was <code class="docutils literal notranslate"><span class="pre">True</span></code>) otherwise localization list (no undrifting) saved as _locs.hdf5</p></li>
+<li><p>[2](str):         Last full file saving path for input to further modules</p></li>
 </ul>
 </p>
 </dd>
@@ -561,8 +547,8 @@ Distribution is taken from 10 frames evenly distributed over total aquisition ti
 </dd>
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p><ul class="simple">
-<li><p>[0] Dictionary of kwargs passed to function</p></li>
-<li><p>[1] Undrifted localizations (numpy.array) using picasso.postprocess.undrift().</p></li>
+<li><p>[0](dict):        kwargs passed to function</p></li>
+<li><p>[1](numpy.array): Undrifted localization list using picasso.postprocess.undrift().</p></li>
 </ul>
 </p>
 </dd>

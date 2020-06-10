@@ -10,39 +10,29 @@ Usage
    :maxdepth: 2
 
 
-Data structure of localization lists
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Please have a look at this `notebook <https://github.com/schwille-paint/picasso_addon/blob/master/scripts/examples/load_datastructure.ipynb>`_ to learn how to load 
-picassos' localization lists and which observables it contains.
-
-
 Localize and undrift
 ^^^^^^^^^^^^^^^^^^^^
-
+General description
+-------------------
 To localize and undrift the raw ome.tif files the following steps are performed:
 
 1. An :ref:`automated minimal net-gradient detection <automng>` is performed to define all valid spots
 2. A 2D Gaussian least square fit is performed for every spot using `picasso.localize`_
-3. The resulting localizations are undrifted by RCC as described in `picasso.render`_
+3. The resulting localizations are undrifted in ``segments`` by RCC as described in `picasso.render`_ 
 
-
+How to use
+----------
 The `localize_undrift notebook <https://github.com/schwille-paint/picasso_addon/blob/master/scripts/noteboooks/01_localize_undrift.ipynb>`_ guides through the usage of
 the picasso_addon.localize.main() function to obtain localized and undrifted localizations lists from raw ome.tif files. If you prefer normal pyhton scripts 
 (e.g. for use in spyder) you can find it `here <https://github.com/schwille-paint/picasso_addon/blob/master/scripts/standard/01_localize_undrift.py>`_.
-
-.. _automng:
-
-Automated minimal net-gradient detection
-----------------------------------------
-We will insert a notebook here to explain what is happening in detail, please be patient.
-
 
 
 .. _autopick:
 
 Autopick
 ^^^^^^^^
-
+General description
+-------------------
 To automatically define localization clusters in the rendered localizations (_render.hdf5) we go from a pointillistic to a pixel based presentation.
 We can then use a modified version of the spot finding algorithm of `picasso.localize`_.
 The following steps are performed:
@@ -57,6 +47,23 @@ The following steps are performed:
 8. Last, we give every localization an ID ``group`` corresponding to its pick identity. Localizations not corresponding to a pick are disregarded.
 9. The result is saved as _picked.hdf5.
 
+How to use
+----------
 The `autopick notebook <https://github.com/schwille-paint/picasso_addon/blob/master/scripts/noteboooks/02_autopick.ipynb>`_ guides through the usage of
 the picasso_addon.autopick.main() function to obtain localization clusters above a certain localization threshold from *_render.hdf5 localization lists. 
 If you prefer normal python scripts (e.g. for use in spyder) you can find it `here <https://github.com/schwille-paint/picasso_addon/blob/master/scripts/standard/02_autopick.py>`_.
+
+
+Detailed info
+^^^^^^^^^^^^^
+
+Data structure of localization lists
+------------------------------------
+Please have a look at this `notebook <https://github.com/schwille-paint/picasso_addon/blob/master/scripts/examples/load_datastructure.ipynb>`_ to learn how to load 
+picassos' localization lists and which observables it contains.
+
+.. _automng:
+
+Automated minimal net-gradient detection
+----------------------------------------
+We will insert a notebook here to explain what is happening in detail, please be patient.

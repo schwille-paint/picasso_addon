@@ -49,9 +49,9 @@ If you don't want to install the picasso_addon package into your environment but
     2. Create a folder called startup if it’s not already there
     3. Add a new Python file called ``start.py`` or modify it and add 
     
-.. code-block:: python
+    .. code-block:: python
 
-    import sys
-    sys.path.append('C:/yourpath/picasso_addon')
+        import sys
+        sys.path.append('C:/yourpath/picasso_addon')
 
  

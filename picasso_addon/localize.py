@@ -110,11 +110,11 @@ def localize_movie(movie,**params):
     
     Keyword Args:
         localize (bool=True): Localize raw movie (see `picasso.localize`_)
-        baseline (int=70): Camera spec. baseline (see `picasso.localize`_).
+        baseline (int=70):    Camera spec. baseline (see `picasso.localize`_).
     
     Returns:
         list: 
-		- [0] (dict): kwargs passed to function
+		- [0] (dict):        kwargs passed to function
         - [1] (numpy.array): Localizations as obtained by picasso.gausslq
     '''
     ### Set standard paramters if not given with function call
@@ -199,8 +199,8 @@ def undriftrcc_locs(locs,info,**params):
         segments (int=1000): Number of frames per segment used for correlation.
     Returns:
         list: 
-		- [0] Dictionary of kwargs passed to function
-        - [1] Undrifted localizations (numpy.array) using picasso.postprocess.undrift().
+		- [0](dict):        kwargs passed to function
+        - [1](numpy.array): Undrifted localization list using picasso.postprocess.undrift().
         
     '''
     ### Set standard paramters if not given with function call
@@ -256,14 +256,10 @@ def main(file,info,path,**params):
     
     Returns: 
         list:
-        - [0][0] Dict of kwargs passed to localize
-        - | [0][1] Localizations (numpy.array) as created by picasso.localize
-          | Will be saved with extension '_locs.hdf5' for usage in picasso.render
-        - [1][0] Dict of kwargs passed to undriftrcc_locs        
-        - | [1][1] Undrifted(RCC) localizations as created by picasso.render. 
-          | If undrifing was not succesfull just corresponds to original loclizations.
-          | Will be saved with extension '_locs_render.hdf5' for usage in picasso.render                            
-          | If undrifting was not succesfull only _locs will be saved.
+        - [0][0](dict):     kwargs passed to localize_movie()
+        - [0][1](dict):     kwargs passed to undriftrcc_locs()
+        - [1](numpy.array): Undrifted localization list saved as _render.hdf5 (if ``undrift`` was ``True``) otherwise localization list (no undrifting) saved as _locs.hdf5
+        - [2](str):         Last full file saving path for input to further modules
     '''
     ### Path of file that is processed
     path=os.path.splitext(path)[0]
@@ -285,7 +281,7 @@ def main(file,info,path,**params):
     ############################# Localize
     if params['localize']==True:
         
-        ### Autodetect optimum minimal net-gradient
+        ### Autodetect optimum minimal net-gradient and overwrite in params['mng'] for usage in localize_movie()
         if params['mng']=='auto':
             params['mng']=autodetect_mng(file,info,params['box'])
             params['auto_mng']=True
@@ -294,23 +290,26 @@ def main(file,info,path,**params):
            
         ### Localize movie
         out_localize=localize_movie(file,**params)
-        try: out_localize[0]['auto_mng']=True # Add auto_mng entry to localize yaml if active
+        try: out_localize[0]['auto_mng']=params['auto_mng'] # Add auto_mng entry to localize yaml if active
         except: pass
     
         ### Save _locs and yaml
         print('Saving _locs ...')
-        info_locs=info.copy()+[out_localize[0]] # Update inof
+        info_locs=info.copy()+[out_localize[0]] # Update info
         next_path=path+'_locs.hdf5' # Update path
         io.save_locs(next_path,
                      out_localize[1],
                      info_locs,
                      )
         
-    else: 
-        out_localize=[info,file]
-        next_path=path
-    
-    info=out_localize[0] # Update info
+        ### Update path and info for undrifting
+        next_path=os.path.splitext(next_path)[0] # Remove file extension
+        info=info+[out_localize[0]] # Update info
+        
+    else:
+        ### Update path and info for undrifting
+        out_localize=[{'localize':False},file] # Keep original
+        next_path=path # Keep original
     
     ############################## Undrift
     if params['undrift']==True:
@@ -320,7 +319,7 @@ def main(file,info,path,**params):
             ### Save _locs_render and yaml
             print('Saving _render ...')
             info_render=info.copy()+[out_undrift[0]] # Update info
-            next_path=path+'_render.hdf5' # Update path
+            next_path=next_path+'_render.hdf5' # Update path
             io.save_locs(next_path,
                          out_undrift[1],
                          info_render,
@@ -328,12 +327,12 @@ def main(file,info,path,**params):
         except:
             print('Undrifting by RCC was not possible')
             out_undrift=out_localize.copy()
-            out_undrift[0]={'undrift':'Error','extension':'_locs'}
+            out_undrift[0]={'undrift':'Error'}
             
     else:
          print('No undrifting')
          out_undrift=out_localize.copy()
-         out_undrift[0]={'undrift':False,'extension':'_locs'}
+         out_undrift[0]={'undrift':False}
          
     
-    return [out_undrift[0],out_undrift[1],next_path]
+    return [[out_localize[0],out_undrift[0]],out_undrift[1],next_path]
