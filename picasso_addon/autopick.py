@@ -11,6 +11,7 @@ import os
 import numpy as np
 import numba as numba
 import pandas as pd
+from tqdm import tqdm
 from scipy.spatial import cKDTree
 
 import picasso.localize as localize
@@ -235,6 +236,93 @@ def get_picked(locs,picks_idx,field='group'):
     return locs_picked
 
 #%%
+def ck_nlf(trace, M = 10, N = [1, 2, 4, 8, 16], p = 50):
+    '''
+    Chung-Kennedy nonlinear filter
+
+    Nonlinear local low-pass filter optimized for edge preservation. Used
+    quite frequently in step detection in noisy traces.
+    For details, see:
+    Chung SH & Kennedy RA, J Neurosci Meth 1991,
+    DOI: 10.1016/0165-0270(91)90118-J
+
+    Note that the algorithm frequently raises warnings saying "invalid value
+    encountered in true_divide". There is no need to worry about that:
+    The filter, when used with high p, tends to create extreme numbers in
+    calculation intermediates, which may even end up creating zeros. This only
+    affects weighting functions of a handful of data points, though, and has
+    negligible impact on the overall filter result. It will NOT create any
+    extreme values in the returned filtered trace, at least I have never
+    encountered such results.
+
+    Args:
+        trace (numpyp.array): Time trace to be filtered. Signal only, no time axis required.
+        M (int):              Field width for predictor weight determination. Typical values: 5-20.
+        N (list):             Field width set for predictor calculation. Typical values: [4, 8, 16, 32] or subsets thereof. Minumum ``len(N) > 1``
+        p (int):              Positive single number (usually int, but not strictly required). Nonlinear order of predictor weight calculation. 
+                              Typical values: 5-100, strongly application-dependent. Higher values
+                              mean sharper edge preservation.
+
+    Returns:
+        trace_f (numpy.array): 1D filtered time trace of same structure as input.
+
+    '''
+
+    # Initializations
+    K = len(N)
+    l_trace = len(trace)
+    pred_f = np.zeros((l_trace, K))
+    pred_b = np.zeros((l_trace, K))
+    weight_f = np.zeros((l_trace, K))
+    weight_b = np.zeros((l_trace, K))
+    weight_f_norm = np.zeros((l_trace, K))
+    weight_b_norm = np.zeros((l_trace, K))
+
+    # Raw predictors.
+    for k in range(K):
+        trace_shift = np.empty((l_trace + N[k], N[k]))
+        trace_shift[:, :] = np.nan
+        for l in range(N[k]):
+            trace_shift[l:l_trace + l, l] = trace
+        # Forward predictor
+        pred_f[0] = trace[0]
+        pred_f[1:, k] = np.nanmean(trace_shift[:l_trace - 1], axis = 1)
+        # Backward predictor
+        pred_b[0:-1, k] = np.nanmean(trace_shift[N[k]:-1], axis = 1)
+        pred_b[-1, k] = trace[-1]
+
+    # Non-normalized weights.
+    # First value of forward and last value of backward would lead to div by 0.
+    # They are skipped and their weights set to (rather left at) 0.
+        # Forward predictor weights
+        trace_shift = np.empty((l_trace + M - 1, M))
+        trace_shift.fill(np.nan)
+        MSE_f = (trace - pred_f[:,k]) ** 2
+        for m in range(M):
+            trace_shift[m:l_trace + m, m] = MSE_f
+        weight_f[1:, k] = np.nansum(trace_shift[1:l_trace, :], axis = 1) ** (-p)
+        # Backward predictor weights
+        trace_shift = np.empty((l_trace + M - 1, M))
+        trace_shift.fill(np.nan)
+        MSE_b = (trace - pred_b[:, k]) ** 2
+        for m in range(M):
+            trace_shift[m:l_trace + m, m] = MSE_b
+        weight_b[:-1, k] = np.nansum(trace_shift[-l_trace:-1, :], axis = 1) ** (-p)
+
+    # Normalize weights.
+    weightsum = np.nansum(weight_f, axis = 1) + np.nansum(weight_b, axis = 1)
+    for k in range(K):
+        weight_f_norm[:, k] = weight_f[:, k] / weightsum
+        weight_b_norm[:, k] = weight_b[:, k] / weightsum
+
+    # Get filtered trace.
+    pred_f_w = pred_f * weight_f_norm
+    pred_b_w = pred_b * weight_b_norm
+    trace_f = np.nansum(pred_f_w, axis = 1) + np.nansum(pred_b_w, axis = 1)
+
+    return trace_f
+
+#%%
 def main(locs,info,path,**params):
     '''
     Cluster detection (pick) in localizations by thresholding in number of localizations per cluster.
@@ -340,16 +428,22 @@ def main(locs,info,path,**params):
                                      centers[['x','y']].values,
                                      pick_radius=params['pick_diameter']/2,
                                      )
-    ## Assign group ID to locs
+    ### Assign group ID to locs
     print('Assigning group ID ...')
     locs_picked=get_picked(pd.DataFrame(locs),
                            picks_idx,
                            field='group',
                            )
+    
+    ### Apply Chung-Kennedy local mean filter to photons of each group
+    print('Applying Chung-Kennedy filter ...')
+    tqdm.pandas()
+    locs_picked = locs_picked.groupby('group').progress_apply(lambda df: df.assign( photons_ck = ck_nlf(df.photons.values).astype(np.float32) ) )
+    
     ### Save locs_picked as .hdf5 and info+params as .yaml
     print('Saving _picked ...')
-    info_picked=info.copy()+[params] # Update info
-    next_path=path+'_picked.hdf5' # Update path
+    info_picked=info.copy()+[params]      # Update info
+    next_path=path+'_picked.hdf5'         # Update path
     io.save_locs(next_path,
                  locs_picked.to_records(index=False),
                  info_picked,

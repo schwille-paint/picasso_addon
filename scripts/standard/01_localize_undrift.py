@@ -11,14 +11,16 @@ import picasso_addon.localize as localize
 importlib.reload(localize)
 ############################################# Load raw data
 dir_names=[]
-dir_names.extend([r'C:\Users\flori\Downloads\picasso_tutorial\picasso_tutorial'])
+dir_names.extend([r'C:\Data\p04.lb-FCS\20-07-15_Tutorial']*3)
 
 file_names=[]
-file_names.extend(['All_concatenated_cent256.tif'])
+file_names.extend(['id64_5nM_p35uW_T23_1_MMStack_Pos0.ome_locs.hdf5'])
+file_names.extend(['id64_10nM_p35uW_T23_1_MMStack_Pos0.ome_locs.hdf5'])
+file_names.extend(['id64_20nM_p35uW_T23_1_MMStack_Pos0.ome_locs.hdf5'])
 
 ############################################ Set non standard parameters 
 ### Valid for all evaluations
-params_all={'mng':5000}
+params_all={'mng': 400}
 
 ### Exceptions
 params_special={}

@@ -12,26 +12,19 @@ importlib.reload(autopick)
 
 ############################################# Load raw data
 dir_names=[]
-dir_names.extend([r'C:\Data\p06.SP-tracking\20-01-17_fix_slb_L_T21\id140_L_exp200_p114uW_T21_1'])
+dir_names.extend([r'C:\Data\p04.lb-FCS\19-06-05_N=12\id63_5nM_p35uW_1'])
 
 file_names=[]
-file_names.extend(['id140_L_exp200_p114uW_T21_1_MMStack_Pos2.ome_locs_render.hdf5'])
+file_names.extend(['id63_5nM_p35uW_1_MMStack_Pos0.ome_locs_render.hdf5'])
 
-############################################ Set non standard parameters 
-### Valid for all evaluations
-params_all={'min_n_locs':5}
-## Exceptions
-params_special={}
+############################################ Set parameters
+params={'lbfcs':True}
 
 #%%                   
 failed_path=[]
 for i in range(0,len(file_names)):
     ### Create path
     path=os.path.join(dir_names[i],file_names[i])
-    ### Set paramters for each run
-    params=params_all.copy()
-    for key, value in params_special.items():
-        params[key]=value[i]
     ### Run main function
     try:
         locs,info=io.load_locs(path)
@@ -61,6 +54,7 @@ print('Failed attempts: %i'%(len(failed_path)))
 # ### Load file
 # path=os.path.join(dir_names[i],file_names[i])
 # locs,info=io.load_locs(path)
+
 # ### Render
 # image=render.render(locs,
 #                     info,
@@ -81,10 +75,10 @@ print('Failed attempts: %i'%(len(failed_path)))
 # ax.imshow(image,cmap='gray',vmin=0,vmax=100,interpolation='nearest',origin='lower')
 # for i in range(0,len(centers)):
 #     circle=plt.Circle((centers.loc[i,'x'],centers.loc[i,'y']),
-#                params['pick_diameter']/2*params['oversampling'],
-#                facecolor='None',
-#                edgecolor='y',
-#                lw=2)
+#                 params['pick_diameter']/2*params['oversampling'],
+#                 facecolor='None',
+#                 edgecolor='y',
+#                 lw=2)
 #     ax.add_artist(circle)
 
 # ax.grid(False)
