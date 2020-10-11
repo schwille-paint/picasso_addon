@@ -236,7 +236,7 @@ def get_picked(locs,picks_idx,field='group'):
     return locs_picked
 
 #%%
-def ck_nlf(trace, M = 10, N = [1, 2, 4, 8, 16], p = 50):
+def ck_nlf(trace, M = 10, N = [2, 4, 8, 16], p = 30):
     '''
     Chung-Kennedy nonlinear filter
 
