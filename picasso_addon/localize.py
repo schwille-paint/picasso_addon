@@ -10,11 +10,14 @@
 import os
 import numba
 import numpy as np
+import warnings
+warnings.filterwarnings("ignore")
 
 import picasso.io as io
 import picasso.localize as localize
 import picasso.gausslq as gausslq
 import picasso.postprocess as postprocess
+import picasso_addon
 
 ### Test if GPU fitting can be used
 try:
@@ -99,42 +102,93 @@ def autodetect_mng(movie,info,box):
     mng=int(np.ceil(mng/10)*10)
         
     return mng
+
+#%%
+def cut_spots_readvar(ids,box):
     
+    ### Load maps
+    readvar = picasso_addon.load_readvar_map() # Readout variance
+    gain = picasso_addon.load_gain_map()            # Gain
+    
+    ### Identify readout variances of spots corresponding to ids
+    spots_readvar = np.zeros((len(ids), box, box), dtype=np.float32)                                 # Prepare spots_readvar
+    readvar_convert = readvar/gain**2                                                                                # Convert ADU variance map to electrons using gain map
+    localize._cut_spots_frame(readvar_convert,                                                                   # Assign spots_readvar values
+                                        0,
+                                        np.zeros(len(ids),dtype=np.int32),
+                                        np.round(ids['x']).astype(np.int16),
+                                        np.round(ids['y']).astype(np.int16),
+                                        int(box / 2),
+                                        0,
+                                        len(ids),
+                                        spots_readvar)
+    
+    return spots_readvar
+
+#%%
+def weightfit_spots_gpufit(spots,spots_readvar):
+    
+    size = spots.shape[1]
+    initial_parameters = gausslq.initial_parameters_gpufit(spots, size)
+    spots.shape = (len(spots), (size * size))
+    spots_readvar.shape = (len(spots), (size * size))
+    weights = 1/(spots+spots_readvar)                      # Weights should equal 1/var of data
+    model_id = gf.ModelID.GAUSS_2D_ELLIPTIC
+
+    parameters, states, chi_squares, number_iterations, exec_time = gf.fit(
+        spots,
+        weights,
+        model_id,
+        initial_parameters,
+        tolerance=1e-2,
+        max_number_iterations=20,
+    )
+
+    parameters[:, 0] *= 2.0 * np.pi * parameters[:, 3] * parameters[:, 4]
+    
+    return parameters
+
 #%%
 def localize_movie(movie,**params):
     '''
-    Localize raw movie using picasso.gausslq
+    Localize using least square fitting in either non-weighted version (CPU,GPU) or weighted version (GPU) using provided CMOS camera readout variance map.
     
     Args:
         movie (io.TiffMultiMap): Movie object as created by picasso.io.load_movie().
     
     Keyword Args:
-        localize (bool=True): Localize raw movie (see `picasso.localize`_)
-        baseline (int=70):    Camera spec. baseline (see `picasso.localize`_).
+        calibrate_movie(bool=True)      Pixel calibration of raw movie using offset and gain maps for CMOS sensors
+        localize(bool=True):                  Localize raw or calibrated movie (CMOS) (see picasso_addon.localize)
+        box(int=9):                                Box length (uneven!) of fitted spots (see picasso.localize)
+        mng(int or str='auto'):               Minimal net-gradient spot detection threshold(see picasso.localize. If set to 'auto' minimal net_gradient is determined by autodetect_mng().
+        baseline(int=113):                     Camera spec. baseline (see picasso.localize).
+        gain(float=1):                            Camera spec. EM gain (see picasso.localize)
+        sensitivity(float=0.49):              Camera spec. sensitivity (see picasso.localize)
     
     Returns:
         list: 
-		- [0] (dict):        kwargs passed to function
-        - [1] (numpy.array): Localizations as obtained by picasso.gausslq
+		- [0] (dict):               kwargs passed to function
+        - [1] (numpy.array): Localizations
     '''
     ### Set standard paramters if not given with function call
-    standard_params={'baseline':70,
-                     'gain':1,
-                     'sensitivity':0.56,
-                     'qe':0.82,
-                     'box':5,
-                     'mng':400,
-                     }
+    standard_params = {'calibrate_movie':False,
+                                      'baseline':113,
+                                      'gain':1,
+                                      'sensitivity':0.49,
+                                      'qe':1,
+                                      'box':9,
+                                      'mng':400,
+                                      }
     ### Check if key in params, if not set to standard_params
     for key, value in standard_params.items():
         try:
             params[key]
-            if params[key]==None: params[key]=standard_params[key]
+            if params[key] == None: params[key]=standard_params[key]
         except:
-            params[key]=standard_params[key]
+            params[key] = standard_params[key]
     
     ### Remove keys that are not needed
-    delete_key=[]
+    delete_key = []
     for key, value in params.items():
         if key not in standard_params.keys():
             delete_key.extend([key])
@@ -142,16 +196,17 @@ def localize_movie(movie,**params):
         del params[key]
         
     ### Procsessing marks:
-    params['generatedby']='picasso_addon.localize.localize_movie()'
+    params['generatedby'] = 'picasso_addon.localize.localize_movie()'
     
-    ### Set camera specs for photon conversion
-    camera_info={}
-    camera_info['baseline']=params['baseline']
-    camera_info['gain']=params['gain']
-    camera_info['sensitivity']=params['sensitivity']
-    camera_info['qe']=params['qe']
+    ############################ Set camera specs
+    camera_info = {}
+    camera_info['baseline'] = params['baseline']
+    camera_info['gain'] = params['gain']
+    camera_info['sensitivity'] = params['sensitivity']
+    camera_info['qe'] = params['qe']
+    em = camera_info['gain'] > 1 # Check if EMCCD
     
-    ### Spot detection
+    ############################ Spot detection
     print('Identifying spots ...')
     current,futures=localize.identify_async(movie,
                                             params['mng'],
@@ -164,75 +219,37 @@ def localize_movie(movie,**params):
                              params['box'],
                              camera_info)
 
-    #### Gauss-Fitting
-    em = camera_info['gain'] > 1
-    
+    ############################ Least-square fitting    
     if gpufit_available:
-        print('GPU fitting ...')
-        theta = gausslq.fit_spots_gpufit(spots)
-        locs=gausslq.locs_from_fits_gpufit(identifications,
+        if params['calibrate_movie']:
+            print('Identifying spot readout variances ... ')
+            spots_readvar = cut_spots_readvar(identifications, params['box'])
+            print('Weighted least square fitting (GPU) ...')
+            theta = weightfit_spots_gpufit(spots,spots_readvar)
+        
+        else:
+            print('Non-weighted least square fitting (GPU) ...')
+            theta = gausslq.fit_spots_gpufit(spots)
+            
+        locs = gausslq.locs_from_fits_gpufit(identifications,
                                            theta,
                                            params['box'],
                                            em)
     else:
-        print('Fitting ...')
-        fs=gausslq.fit_spots_parallel(spots,asynch=True)
-        theta=gausslq.fits_from_futures(fs)   
-        locs=gausslq.locs_from_fits(identifications,
+        print('Non-weighted least square fitting (CPU) ..')
+        fs = gausslq.fit_spots_parallel(spots,asynch=True)
+        theta = gausslq.fits_from_futures(fs)   
+        locs = gausslq.locs_from_fits(identifications,
                                     theta,
                                     params['box'],
                                     em)
         
     assert len(spots) == len(locs)
     
+    ############################ Remove localizations with photon values below median background signal
+    locs = locs[locs.photons > np.median(locs.bg)]
+    
     return [params,locs]
-
-#%%
-def undriftrcc_locs(locs,info,**params):
-    '''
-    Undrift localization by rcc (see picasso.render).
-    
-    Args:
-        locs (numpy.array): Localizations as obtained by picasso.localize()
-        info (dict): Meta-data as generated by picasso.localize (.yaml files)
-    Keyword Arguments:
-        segments (int=1000): Number of frames per segment used for correlation.
-    Returns:
-        list: 
-		- [0](dict):        kwargs passed to function
-        - [1](numpy.array): Undrifted localization list using picasso.postprocess.undrift().
-        
-    '''
-    ### Set standard paramters if not given with function call
-    standard_params={'segments':1000,
-                     }
-    ### Check if key in params, if not set to standard_params, also when None was passed as value
-    for key, value in standard_params.items():
-        try:
-            params[key]
-            if params[key]==None: params[key]=standard_params[key]
-        except:
-            params[key]=standard_params[key]
-            
-    ### Remove keys that are not needed
-    delete_key=[]
-    for key, value in params.items():
-        if key not in standard_params.keys():
-            delete_key.extend([key])
-    for key in delete_key:
-        del params[key]
-        
-    ### Procsessing marks: generatedby
-    params['generatedby']='picasso_addon.localize.undriftrcc_locs()'
-    
-    drift,locs_render=postprocess.undrift(locs,
-                                          info,
-                                          params['segments'],
-                                          display=False,
-                                          segmentation_callback=None,
-                                          rcc_callback=None,
-                                          )    
-    return [params,locs_render]
 
 #%%
 def main(file,info,path,**params):
@@ -244,15 +261,17 @@ def main(file,info,path,**params):
         info(list(dicts)):         Info to raw movie/_locs.hdf5 loaded with picasso.io.load_movie() or picasso.io.load_locs()
     
     Keyword Arguments:
-        localize(bool=True)        Localize raw movie (see picasso.localize)
-        baseline(int=70):          Camera spec. baseline (see picasso.localize).
-        gain(float=1):             Camera spec. EM gain (see picasso.localize)
-        sensitivity(float=0.56):   Camera spec. sensitivity (see picasso.localize)
-        qe(float=0.82):            Camera spec. sensitivity (see picasso.localize)
-        box(int=5):                Box length (uneven!) of fitted spots (see picasso.localize)
-        mng(int or str='auto'):    Minimal net-gradient spot detection threshold(see picasso.localize. If set to 'auto' minimal net_gradient is determined by autodetect_mng().
-        undrift(bool=True)         Apply RCC drift correction (see picasso.render)
-        segments(int=1000):        Segment length (frames) for undrifting by RCC (see picasso.render)
+        calibrate_movie(bool=True)      Pixel calibration of raw movie using offset and gain maps for CMOS sensors
+        localize(bool=True):                  Localize raw or calibrated movie (CMOS) (see picasso_addon.localize)
+        box(int=9):                                Box length (uneven!) of fitted spots (see picasso.localize)
+        mng(int or str='auto'):               Minimal net-gradient spot detection threshold(see picasso.localize. If set to 'auto' minimal net_gradient is determined by autodetect_mng().
+        baseline(int=113):                     Camera spec. baseline (see picasso.localize).
+        gain(float=1):                            Camera spec. EM gain (see picasso.localize)
+        sensitivity(float=0.49):              Camera spec. sensitivity (see picasso.localize)
+        qe(float=1):                               Camera spec. quantum gain (see picasso.localize), set to 1 to count generated photoelectrons.
+        
+        undrift(bool=True):        Apply RCC drift correction (see picasso.postprocess)
+        segments(int=1000):     Segment length (frames) for undrifting by RCC (see picasso.render)
     
     Returns: 
         list:
@@ -261,78 +280,88 @@ def main(file,info,path,**params):
         - [1](numpy.array): Undrifted localization list saved as _render.hdf5 (if ``undrift`` was ``True``) otherwise localization list (no undrifting) saved as _locs.hdf5
         - [2](str):         Last full file saving path for input to further modules
     '''
-    ### Path of file that is processed
-    path=os.path.splitext(path)[0]
-    
-    ### Set standard paramters if not given with function call
-    standard_params={'localize':True,
-                     'undrift':True,
-                     'mng':'auto',
-                     'box':5,
-                     }
+    ############################# Set standard paramters if not given with function call
+    standard_params={'calibrate_movie': True,
+                                    'localize':True,
+                                    'box':9,
+                                    'mng':'auto',
+                                    'undrift':True,
+                                    'segments':1000,
+                                   }
     for key, value in standard_params.items():
         try:
             params[key]
-            if params[key]==None: params[key]=standard_params[key]
+            if params[key] == None: params[key] = standard_params[key]
         except:
-            params[key]=standard_params[key]
+            params[key] = standard_params[key]
     
+    #############################  Path of file that is processed
+    print()
+    path=os.path.splitext(path)[0]
     
     ############################# Localize
     if params['localize']==True:
         
-        ### Autodetect optimum minimal net-gradient and overwrite in params['mng'] for usage in localize_movie()
-        if params['mng']=='auto':
-            params['mng']=autodetect_mng(file,info,params['box'])
-            params['auto_mng']=True
-            print()
+        ### Calibrate movie (CMOS)
+        if params['calibrate_movie']:
+            offset = picasso_addon.load_offset_map() # Load offset map
+            gain = picasso_addon.load_gain_map()     # Load gain map
+            print('Calibrating movie ...')
+            file = (file - offset)/gain    # Calibrate movie
+            params['baseline'] = 0     # Change camera info
+            params['sensitivity'] = 1
+            
+        ### Autodetect mng
+        if params['mng'] == 'auto':
+            params['mng'] = autodetect_mng(file,info,params['box'])
+            params['auto_mng'] = True
             print('Minimum net-gradient set to %i'%(params['mng']))
            
         ### Localize movie
-        out_localize=localize_movie(file,**params)
-        try: out_localize[0]['auto_mng']=params['auto_mng'] # Add auto_mng entry to localize yaml if active
+        params_localize, locs = localize_movie(file,**params)
+        try: params_localize['auto_mng'] = params['auto_mng'] # Add auto_mng entry to localize params to indicate it was active
         except: pass
     
         ### Save _locs and yaml
         print('Saving _locs ...')
-        info_locs=info.copy()+[out_localize[0]] # Update info
+        info_localize=info.copy()+[params_localize] # Update info
         next_path=path+'_locs.hdf5' # Update path
         io.save_locs(next_path,
-                     out_localize[1],
-                     info_locs,
-                     )
+                            locs,
+                            info_localize,
+                            )
         
-        ### Update path and info for undrifting
-        next_path=os.path.splitext(next_path)[0] # Remove file extension
-        info=info+[out_localize[0]] # Update info
+        ### Update path and info 
+        next_path = os.path.splitext(next_path)[0] # Remove file extension
+        info = info + [params_localize] # Update info
         
     else:
-        ### Update path and info for undrifting
-        out_localize=[{'localize':False},file] # Keep original
-        next_path=path # Keep original
+        locs = file
+        next_path = path 
     
     ############################## Undrift
     if params['undrift']==True:
         try:
-            out_undrift=undriftrcc_locs(out_localize[1],info,**params)
-            
+            drift, locs_undrift = postprocess.undrift(locs,
+                                                                           info,
+                                                                           params['segments'],
+                                                                           display=False)
             ### Save _locs_render and yaml
             print('Saving _render ...')
-            info_render=info.copy()+[out_undrift[0]] # Update info
-            next_path=next_path+'_render.hdf5' # Update path
+            info_undrift = info.copy() + [ {'generatedby':'picasso.postprocess.undrift', 'segments':params['segments']} ] # Update info
+            next_path = next_path + '_render.hdf5' # Update path
             io.save_locs(next_path,
-                         out_undrift[1],
-                         info_render,
-                         )
+                                locs_undrift,
+                                info_undrift,
+                                )
         except:
             print('Undrifting by RCC was not possible')
-            out_undrift=out_localize.copy()
-            out_undrift[0]={'undrift':'Error'}
+            locs_undrift = locs
+            info_undrift = info_localize
             
     else:
-         print('No undrifting')
-         out_undrift=out_localize.copy()
-         out_undrift[0]={'undrift':False}
-         
-    
-    return [[out_localize[0],out_undrift[0]],out_undrift[1],next_path]
+          print('No undrifting')
+          locs_undrift = locs
+          info_undrift = info_localize
+          
+    return [info_undrift,locs_undrift]

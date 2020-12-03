@@ -366,7 +366,7 @@ def main(locs,info,path,**params):
     ### If lbFCS given overrun min_n_locs
     try: 
         if params['lbfcs']==True: 
-            standard_params['min_n_locs']=0.05*NoFrames
+            standard_params['min_n_locs']=0.025*NoFrames
             standard_params['lbfcs']=True
     except KeyError:
         pass

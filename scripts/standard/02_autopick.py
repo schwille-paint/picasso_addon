@@ -12,46 +12,10 @@ importlib.reload(autopick)
 
 ############################################# Load raw data
 dir_names=[]
-
-###################### N=12
-# dir_names.extend(['/fs/pool/pool-schwille-paint/Data/p04.lb-FCS/19-06-05_N=12/id63_2-5nM_p35uW_1'])
-# dir_names.extend(['/fs/pool/pool-schwille-paint/Data/p04.lb-FCS/19-06-05_N=12/id63_2-5nM_p35uW_2'])
-# dir_names.extend(['/fs/pool/pool-schwille-paint/Data/p04.lb-FCS/19-06-05_N=12/id63_5nM_p35uW_1'])
-# dir_names.extend(['/fs/pool/pool-schwille-paint/Data/p04.lb-FCS/19-06-05_N=12/id63_5nM_p35uW_2'])
-# dir_names.extend(['/fs/pool/pool-schwille-paint/Data/p04.lb-FCS/19-06-05_N=12/id63_10nM_p35uW_1'])
-# dir_names.extend(['/fs/pool/pool-schwille-paint/Data/p04.lb-FCS/19-06-05_N=12/id63_10nM_p35uW_2'])
-# dir_names.extend(['/fs/pool/pool-schwille-paint/Data/p04.lb-FCS/19-06-05_N=12/id63_20nM_p35uW_1'])
-# dir_names.extend(['/fs/pool/pool-schwille-paint/Data/p04.lb-FCS/19-06-05_N=12/id63_20nM_p35uW_2'])
-###################### N=4
-# dir_names.extend(['/fs/pool/pool-schwille-paint/Data/p04.lb-FCS/19-05-16_N=4/id125_05nM_p35uW_1'])
-# dir_names.extend(['/fs/pool/pool-schwille-paint/Data/p04.lb-FCS/19-05-16_N=4/id125_10nM_p35uW_1'])
-# dir_names.extend(['/fs/pool/pool-schwille-paint/Data/p04.lb-FCS/19-05-16_N=4/id125_20nM_p35uW_1'])
-###################### N=1
-dir_names.extend(['/fs/pool/pool-schwille-paint/Data/p04.lb-FCS/19-05-30_SDS_T21/id114_5nM_p35uW_control_1'])
-dir_names.extend(['/fs/pool/pool-schwille-paint/Data/p04.lb-FCS/19-05-30_SDS_T21/id114_10nM_p35uW_control_1'])
-dir_names.extend(['/fs/pool/pool-schwille-paint/Data/p04.lb-FCS/19-05-30_SDS_T21/id114_20nM_p35uW_control_1'])
-
+dir_names.extend(['/fs/pool/pool-schwille-paint/Data/p17.lbFCS2/20-11-23_N12_T23_CalibrationTest/id45_Pm2-10nM-Meta_p40uW_exp200_Corr-On_1'])
 
 file_names=[]
-
-###################### N=12
-# file_names.extend(['id63_2-5nM_p35uW_1_MMStack_Pos0.ome_locs_render.hdf5'])
-# file_names.extend(['id63_2-5nM_p35uW_2_MMStack_Pos0.ome_locs_render.hdf5'])
-# file_names.extend(['id63_5nM_p35uW_1_MMStack_Pos0.ome_locs_render.hdf5'])
-# file_names.extend(['id63_5nM_p35uW_2_MMStack_Pos0.ome_locs_render.hdf5'])
-# file_names.extend(['id63_10nM_p35uW_1_MMStack_Pos0.ome_locs_render.hdf5'])
-# file_names.extend(['id63_10nM_p35uW_2_MMStack_Pos0.ome_locs_render.hdf5'])
-# file_names.extend(['id63_20nM_p35uW_1_MMStack_Pos0.ome_locs_render.hdf5'])
-# file_names.extend(['id63_20nM_p35uW_2_MMStack_Pos0.ome_locs_render.hdf5'])
-###################### N=4
-# file_names.extend(['id125_05nM_p35uW_1_MMStack_Pos0.ome_locs_render.hdf5'])
-# file_names.extend(['id125_10nM_p35uW_1_MMStack_Pos0.ome_locs_render.hdf5'])
-# file_names.extend(['id125_20nM_p35uW_1_MMStack_Pos0.ome_locs_render.hdf5'])
-###################### N=1
-file_names.extend(['id114_5nM_p35uW_control_1_MMStack_Pos0.ome_locs_render.hdf5'])
-file_names.extend(['id114_10nM_p35uW_control_1_MMStack_Pos0.ome_locs_render.hdf5'])
-file_names.extend(['id114_20nM_p35uW_control_1_MMStack_Pos0.ome_locs_render.hdf5'])
-
+file_names.extend(['id45_Pm2-10nM-Meta_p40uW_exp200_Corr-On_1_MMStack_Pos0.ome_locs_render.hdf5'])
 
 ############################################ Set parameters
 params={'lbfcs':True}
