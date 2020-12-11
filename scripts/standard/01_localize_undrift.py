@@ -10,14 +10,20 @@ importlib.reload(localize)
 
 ############################################# Load raw data
 dir_names=[]
-dir_names.extend(['/fs/pool/pool-schwille-paint/Data/p17.lbFCS2/20-11-23_N12_T23_CalibrationTest/id45_Pm2-10nM-Meta_p40uW_exp200_Corr-On_1'])
+dir_names.extend(['/fs/pool/pool-schwille-paint/Data/p17.lbFCS2/20-12-09_N1_T23_ibidi_cseries/ibidi_id180_Pm2-20nM_p40uW_1'])
+dir_names.extend(['/fs/pool/pool-schwille-paint/Data/p17.lbFCS2/20-12-09_N1_T23_ibidi_cseries/ibidi_id180_Pm2-10nM_p40uW_1'])
+dir_names.extend(['/fs/pool/pool-schwille-paint/Data/p17.lbFCS2/20-12-09_N1_T23_ibidi_cseries/ibidi_id180_Pm2-5nM_p40uW_1'])
+
 
 file_names=[]
-file_names.extend(['id45_Pm2-10nM-Meta_p40uW_exp200_Corr-On_1_MMStack_Pos0.ome.tif'])
+file_names.extend(['ibidi_id180_Pm2-20nM_p40uW_1_MMStack_Pos0.ome.tif'])
+file_names.extend(['ibidi_id180_Pm2-10nM_p40uW_1_MMStack_Pos0.ome.tif'])
+file_names.extend(['ibidi_id180_Pm2-5nM_p40uW_1_MMStack_Pos0.ome.tif'])
+
+
 
 ############################################ Set parameters
-params ={'calibrate_movie':False,
-         'mng' : 300}
+params ={}
 
 #%%
 ############################################ Main loop                   
@@ -46,31 +52,38 @@ print('Failed attempts: %i'%(len(failed_path)))
 
 
 #%%
-# ############################################ Checkout single files
-# import picasso.localize
+############################################ Checkout single files
+# import numpy as np
 # import matplotlib.pyplot as plt
+# import picasso.localize
 
 # ### Load movie
-# i=2
+# i=1
 # path=os.path.join(dir_names[i],file_names[i])
 # movie,info=io.load_movie(path)
+
+# movie = np.array(movie,dtype=np.float32)
+# movie_e = (movie - 113) * 0.49 # Convert to e-
+
 # #%%
 # ### Spot detection
-# frame=30
-# params={'mng':200,
-#         'box':5}
+# frame = 0
+# box = 7
 
+# xlim = np.array([0,100])
+# ylim = np.array([0,100])
+
+# mng, boxvals = localize.autodetect_mng(movie_e,info,box)
 # y,x,ng= picasso.localize.identify_in_frame(movie[frame],
-#                                             params['mng'],
-#                                             params['box'])
+#                                             mng,
+#                                             box)
 # ### Preview
-# f=plt.figure(num=1,figsize=[4,4])
+# f=plt.figure(num=1,figsize=[6,6])
 # f.subplots_adjust(bottom=0.,top=1.,left=0.,right=1.)
 # f.clear()
 # ax=f.add_subplot(111)
-# ax.imshow(movie[frame],cmap='gray',vmin=60,vmax=200,interpolation='nearest',origin='lower')
-# # ax.scatter(x,y,s=150,marker='o',color='None',edgecolor='r',lw=2)   
-
+# ax.imshow(movie_e[frame,:,:],cmap='gray',vmin=0,vmax=80,interpolation='nearest',origin='lower')
+# ax.scatter(x,y,s=150,marker='o',color='None',edgecolor='r',lw=2)   
 # ax.grid(False)
-# ax.set_xlim(200,400)
-# ax.set_ylim(200,400)
+# ax.set_xlim(xlim)
+# ax.set_ylim(ylim)

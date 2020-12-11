@@ -27,22 +27,21 @@ try:
 except ImportError:
     gpufit_available = False
 
+
 #%%
 @numba.jit(nopython=True, nogil=True, cache=False)
-def identify_in_image(image, box):
-    '''
-    Calculate net-gradient of all boxes in one image that have a local maximum in its center pixel.
+def gradient_at(frame, y, x, i):
+    gy = frame[y + 1, x] - frame[y - 1, x]
+    gx = frame[y, x + 1] - frame[y, x - 1]
+    return gy, gx
+
+#%%
+@numba.jit(nopython=True, nogil=True, cache=False)
+def boxvals_in_frame(frame, y, x, box):
     
-    Args:
-        image (numpy.array): One image of movie.
-        box (int): Box size in pixels. Must be uneven!
-        
-    Returns:
-        numpy.array: Net-gradient of all boxes thath have a local maximum in its center pixel
-    '''
-    y, x = localize.local_maxima(image, box)
     box_half = int(box / 2)
-    # Now comes basically a meshgrid
+    
+    ### Create sort of a meshgrid for net gradient calculation
     ux = np.zeros((box, box), dtype=np.float32)
     uy = np.zeros((box, box), dtype=np.float32)
     for i in range(box):
@@ -51,8 +50,28 @@ def identify_in_image(image, box):
     unorm = np.sqrt(ux ** 2 + uy ** 2)
     ux /= unorm
     uy /= unorm
-    ng = localize.net_gradient(image, y, x, box, uy, ux)
-    return ng
+    
+    ### Initiate output
+    ng = np.zeros(len(x), dtype=np.float32)
+    boxsum = np.zeros(len(x), dtype=np.float32)
+    
+    for i, (yi, xi) in enumerate(zip(y, x)):                                                               # Loop through local maxima
+        for k_index, k in enumerate(range(yi - box_half, yi + box_half + 1)):        # Loop through rows within box
+            for l_index, m in enumerate(range(xi - box_half, xi + box_half + 1)):    # Loop through  columns within box
+                
+                ### Sum of pixel values in box
+                boxsum[i] +=  frame[k,m]
+               
+                ### Net gradient
+                if not (k == yi and m == xi):
+                    gy, gx = gradient_at(frame, k, m, i)
+                    ng[i] += ( gy * uy[k_index, l_index] + gx * ux[k_index, l_index] )
+    
+    out = np.zeros((len(x),2), dtype=np.float32)
+    out[:,0] = ng
+    out[:,1] = boxsum
+    
+    return out
 
 #%%
 def autodetect_mng(movie,info,box):
@@ -70,37 +89,29 @@ def autodetect_mng(movie,info,box):
 		int: Minimal net gradient
     '''
 
-    ### Get the distribution of netgradients in all boxes for 10 frames evenly distributed over total aquisition time.
-    frames=np.linspace(0,info[0]['Frames']-1,10).astype(int) # Select 10 frames
+    ### Select 10 evenly distributed frames
+    frames_num=np.linspace(0,info[0]['Frames']-1,10).astype(int) 
     
-    ng_all=np.zeros(1) # Loop over 10 frames and get net-gradients of all boxes within
-    for f in frames:
-        ng=identify_in_image(movie[f].astype(float),box)
-        ng_all=np.hstack([ng_all,ng])
+    #### Loop over frames and calculate net gradient & sum of all boxes
+    boxvals = np.zeros((1,2)) 
+    for f in frames_num:
+        frame = movie[f,:,:]                                                      # Select frame
+        y, x = localize.local_maxima(frame, box)                     # Identify local maxima in frame
+        boxvals_frame = boxvals_in_frame(frame, y, x, box)   # Net gradient [:,0] and sum [:,1] of boxes
+        boxvals = np.vstack([boxvals,boxvals_frame])
     
-    ### Choose minimal net-gradient. Idea is to get the upper boundary of net-gradients 
-    ### corresponding to 'black' boxes, i.e backround noise
+    ### Sort according to boxsums
+    idx_sort = np.argsort(boxvals[:,1])
+    boxvals_sort = boxvals[idx_sort,:]
     
-    ### First roughly cut out ower part of net-gradient distribution
-    ng_median=np.percentile(ng_all,50)
-    positives=(ng_all<=10*ng_median)&(ng_all>=-10*ng_median)
-    ng_all=ng_all[positives]
+    ### Get lowest  (10%) boxsum values and respective net gradients
+    boxvals_sort_low = boxvals_sort[:int(0.1*len(boxvals)),:]
     
-    ### Iteratively redefine the cut-out of the lower distribution:
-    ### Get median and interquartile width -> Define filter based on these quantities -> Cut out -> Repeat from beginning
-    for i in range(0,3):
-        ng_median=np.percentile(ng_all,50)
-        ng_width=np.percentile(ng_all,75)-np.percentile(ng_all,25)
-        ng_crit=2.5*ng_width
-        positives=(ng_all<=(ng_median+ng_crit))&(ng_all>=(ng_median-ng_crit))
-        ng_all=ng_all[positives]
-        
-    ng_median=np.percentile(ng_all,50)
-    ng_width=np.percentile(ng_all,75)-np.percentile(ng_all,25)
+    ### Set minimum net gradient to 4 x the standard deviation of remaining netgradients
+    mng = 4 * np.std(boxvals_sort_low[:,0]) + np.median(boxvals_sort_low[:,0])
     
-    mng=ng_median+2.5*ng_width
-    mng=int(np.ceil(mng/10)*10)
-        
+    mng=int(np.ceil(mng/10)*10) 
+    
     return mng
 
 #%%
@@ -149,81 +160,58 @@ def weightfit_spots_gpufit(spots,spots_readvar):
     return parameters
 
 #%%
-def localize_movie(movie,**params):
+def localize_movie(movie,
+                                 box,
+                                 mng,
+                                 baseline,
+                                 sensitivity,
+                                 qe,
+                                 gain,
+                                 weight_fit):
     '''
     Localize using least square fitting in either non-weighted version (CPU,GPU) or weighted version (GPU) using provided CMOS camera readout variance map.
     
     Args:
-        movie (io.TiffMultiMap): Movie object as created by picasso.io.load_movie().
-    
-    Keyword Args:
-        calibrate_movie(bool=True)      Pixel calibration of raw movie using offset and gain maps for CMOS sensors
-        localize(bool=True):                  Localize raw or calibrated movie (CMOS) (see picasso_addon.localize)
-        box(int=9):                                Box length (uneven!) of fitted spots (see picasso.localize)
-        mng(int or str='auto'):               Minimal net-gradient spot detection threshold(see picasso.localize. If set to 'auto' minimal net_gradient is determined by autodetect_mng().
-        baseline(int=113):                     Camera spec. baseline (see picasso.localize).
-        gain(float=1):                            Camera spec. EM gain (see picasso.localize)
-        sensitivity(float=0.49):              Camera spec. sensitivity (see picasso.localize)
+        movie (io.TiffMultiMap): Movie object as created by picasso.io.load_movie()
+        box(int):                         Box length (uneven!) of fitted spots (see picasso.localize)
+        mng(float):                     Minimal net-gradient spot detection threshold (see picasso.localize)
+        baseline(int):                  Camera spec. baseline (see picasso.localize)
+        sensitivity(float):            Camera spec. sensitivity (see picasso.localize)
+        qe(float):                        Camera spec. quantum efficiency (see picasso.localize)
+        gain(float):                     Camera spec. EM gain (see picasso.localize)
+        weight_fit(bool):             Use weighted least square fitting based on readout variance and gain maps(only GPU implemented!)
+        
     
     Returns:
-        list: 
-		- [0] (dict):               kwargs passed to function
-        - [1] (numpy.array): Localizations
+        locs: Localizations (numpy.recarray)
     '''
-    ### Set standard paramters if not given with function call
-    standard_params = {'calibrate_movie':False,
-                                      'baseline':113,
-                                      'gain':1,
-                                      'sensitivity':0.49,
-                                      'qe':1,
-                                      'box':9,
-                                      'mng':400,
-                                      }
-    ### Check if key in params, if not set to standard_params
-    for key, value in standard_params.items():
-        try:
-            params[key]
-            if params[key] == None: params[key]=standard_params[key]
-        except:
-            params[key] = standard_params[key]
-    
-    ### Remove keys that are not needed
-    delete_key = []
-    for key, value in params.items():
-        if key not in standard_params.keys():
-            delete_key.extend([key])
-    for key in delete_key:
-        del params[key]
-        
-    ### Procsessing marks:
-    params['generatedby'] = 'picasso_addon.localize.localize_movie()'
-    
+
     ############################ Set camera specs
     camera_info = {}
-    camera_info['baseline'] = params['baseline']
-    camera_info['gain'] = params['gain']
-    camera_info['sensitivity'] = params['sensitivity']
-    camera_info['qe'] = params['qe']
-    em = camera_info['gain'] > 1 # Check if EMCCD
+    camera_info['baseline'] = baseline
+    camera_info['sensitivity'] = sensitivity
+    camera_info['qe'] = qe
+    camera_info['gain'] = gain
+    em = gain > 1 # Check if EMCCD
     
     ############################ Spot detection
     print('Identifying spots ...')
     current,futures=localize.identify_async(movie,
-                                            params['mng'],
-                                            params['box'],
-                                            None)
+                                                                   mng,
+                                                                   box,
+                                                                   None)
 
     identifications=localize.identifications_from_futures(futures)
     spots=localize.get_spots(movie,
-                             identifications,
-                             params['box'],
-                             camera_info)
+                                             identifications,
+                                             box,
+                                             camera_info)
 
     ############################ Least-square fitting    
     if gpufit_available:
-        if params['calibrate_movie']:
+        if weight_fit:
             print('Identifying spot readout variances ... ')
-            spots_readvar = cut_spots_readvar(identifications, params['box'])
+            spots_readvar = cut_spots_readvar(identifications, box)
             print('Weighted least square fitting (GPU) ...')
             theta = weightfit_spots_gpufit(spots,spots_readvar)
         
@@ -232,24 +220,26 @@ def localize_movie(movie,**params):
             theta = gausslq.fit_spots_gpufit(spots)
             
         locs = gausslq.locs_from_fits_gpufit(identifications,
-                                           theta,
-                                           params['box'],
-                                           em)
+                                                                  theta,
+                                                                  box,
+                                                                  em)
     else:
         print('Non-weighted least square fitting (CPU) ..')
         fs = gausslq.fit_spots_parallel(spots,asynch=True)
         theta = gausslq.fits_from_futures(fs)   
         locs = gausslq.locs_from_fits(identifications,
-                                    theta,
-                                    params['box'],
-                                    em)
+                                                      theta,
+                                                      box,
+                                                      em)
         
     assert len(spots) == len(locs)
     
-    ############################ Remove localizations with photon values below median background signal
-    locs = locs[locs.photons > np.median(locs.bg)]
+   ############################  Check for any negative values in photon, bg, sx, sy values
+    positives = (locs.photons>0) & (locs.bg>0) & (locs.sx>0) & (locs.sy>0)
+    locs = locs[positives]
     
-    return [params,locs]
+    
+    return locs
 
 #%%
 def main(file,info,path,**params):
@@ -281,10 +271,15 @@ def main(file,info,path,**params):
         - [2](str):         Last full file saving path for input to further modules
     '''
     ############################# Set standard paramters if not given with function call
-    standard_params={'calibrate_movie': True,
+    standard_params={'use_maps': False,
                                     'localize':True,
-                                    'box':9,
+                                    'box':7,
                                     'mng':'auto',
+                                    'baseline':113,
+                                    'sensitivity':0.49,
+                                    'qe':1,
+                                    'gain':1,
+                                    'weight_fit':False,
                                     'undrift':True,
                                     'segments':1000,
                                    }
@@ -302,14 +297,19 @@ def main(file,info,path,**params):
     ############################# Localize
     if params['localize']==True:
         
-        ### Calibrate movie (CMOS)
-        if params['calibrate_movie']:
-            offset = picasso_addon.load_offset_map() # Load offset map
-            gain = picasso_addon.load_gain_map()     # Load gain map
-            print('Calibrating movie ...')
-            file = (file - offset)/gain    # Calibrate movie
-            params['baseline'] = 0     # Change camera info
-            params['sensitivity'] = 1
+        file = np.array(file,dtype=np.float32) # Convert from io.TiffMultiMap to numpy.array
+        
+        if params['use_maps']: ### Calibrate movie using px-maps (CMOS)
+            offset = picasso_addon.load_offset_map()   # Load offset map
+            gain   = picasso_addon.load_gain_map()     # Load gain map
+            print('Converting movie to e- using maps ...')
+            file = (file - offset[np.newaxis,:,:]) / gain[np.newaxis,:,:]  # Calibrate movie
+        
+        else: ### Just conversion to e- using standard settings
+            offset = params['baseline']           # Equal offset for every px
+            gain   = (1/params['sensitivity'])   # Equal gain for every px
+            print('Converting movie to e- ...')
+            file = (file - offset) / gain  # Substract median offset and multiply by median sensitivity
             
         ### Autodetect mng
         if params['mng'] == 'auto':
@@ -318,22 +318,29 @@ def main(file,info,path,**params):
             print('Minimum net-gradient set to %i'%(params['mng']))
            
         ### Localize movie
-        params_localize, locs = localize_movie(file,**params)
-        try: params_localize['auto_mng'] = params['auto_mng'] # Add auto_mng entry to localize params to indicate it was active
-        except: pass
-    
+        locs = localize_movie(file,
+                                           params['box'],
+                                           params['mng'],
+                                           0,         # Baseline set to 0 since movie already converted to e-
+                                           1,         # Sensitivity set to 1 since movie already converted to e-
+                                           params['qe'],
+                                           params['gain'],
+                                           params['weight_fit']
+                                           )
+        
         ### Save _locs and yaml
         print('Saving _locs ...')
-        info_localize=info.copy()+[params_localize] # Update info
+        params_localize = params.copy() 
+        for key in ['undrift','segments']: params_localize.pop(key) # Remove keys for undrifting
+        info = info + [params_localize]  # Update info
         next_path=path+'_locs.hdf5' # Update path
         io.save_locs(next_path,
                             locs,
-                            info_localize,
+                            info,
                             )
         
-        ### Update path and info 
+        ### Update path
         next_path = os.path.splitext(next_path)[0] # Remove file extension
-        info = info + [params_localize] # Update info
         
     else:
         locs = file
@@ -348,20 +355,18 @@ def main(file,info,path,**params):
                                                                            display=False)
             ### Save _locs_render and yaml
             print('Saving _render ...')
-            info_undrift = info.copy() + [ {'generatedby':'picasso.postprocess.undrift', 'segments':params['segments']} ] # Update info
+            info= info + [ {'segments':params['segments']} ] # Update info
             next_path = next_path + '_render.hdf5' # Update path
             io.save_locs(next_path,
                                 locs_undrift,
-                                info_undrift,
+                                info,
                                 )
         except:
             print('Undrifting by RCC was not possible')
             locs_undrift = locs
-            info_undrift = info_localize
             
     else:
           print('No undrifting')
           locs_undrift = locs
-          info_undrift = info_localize
           
-    return [info_undrift,locs_undrift]
+    return [info,locs_undrift]
