@@ -340,7 +340,7 @@ def main(locs,info,path,**params):
                                         Set to lower value for usual DNA-PAINT signal (see ``lbfcs``).
         fit_center(bool=False):         False = Center of mass. True = 2D Gaussian fitting of center.
         pick_diameter(float=1.2):       Pick diameter in original pixels.
-        lbfcs(bool=False):              If set to True will overrun min_n_locs and sets it to 0.05*NoFrames.
+        lbfcs(bool=False):              If set to True will overrun min_n_locs and sets it to 0.02*NoFrames.
         
     Returns:
         list:
@@ -366,7 +366,7 @@ def main(locs,info,path,**params):
     ### If lbFCS given overrun min_n_locs
     try: 
         if params['lbfcs']==True: 
-            standard_params['min_n_locs']=0.01*NoFrames
+            standard_params['min_n_locs']=0.02*NoFrames
             standard_params['lbfcs']=True
     except KeyError:
         pass
