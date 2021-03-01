@@ -107,7 +107,7 @@ def autodetect_mng(movie,info,box):
     ### Get lowest  (10%) boxsum values and respective net gradients
     boxvals_sort_low = boxvals_sort[:int(0.1*len(boxvals)),:]
     
-    ### Set minimum net gradient to 4 x the standard deviation of remaining netgradients
+    ### Set minimum net gradient to (median + 4 x the standard deviation) of remaining netgradients (i.e. 10% boxsum percentile)
     mng = 4 * np.std(boxvals_sort_low[:,0]) + np.median(boxvals_sort_low[:,0])
     
     mng=int(np.ceil(mng/10)*10) 
@@ -251,17 +251,17 @@ def main(file,info,path,**params):
         info(list(dicts)):         Info to raw movie/_locs.hdf5 loaded with picasso.io.load_movie() or picasso.io.load_locs()
     
     Keyword Arguments:
-        calibrate_movie(bool=True)      Pixel calibration of raw movie using offset and gain maps for CMOS sensors
-        localize(bool=True):                  Localize raw or calibrated movie (CMOS) (see picasso_addon.localize)
-        box(int=9):                                Box length (uneven!) of fitted spots (see picasso.localize)
-        mng(int or str='auto'):               Minimal net-gradient spot detection threshold(see picasso.localize. If set to 'auto' minimal net_gradient is determined by autodetect_mng().
-        baseline(int=113):                     Camera spec. baseline (see picasso.localize).
-        gain(float=1):                            Camera spec. EM gain (see picasso.localize)
-        sensitivity(float=0.49):              Camera spec. sensitivity (see picasso.localize)
-        qe(float=1):                               Camera spec. quantum gain (see picasso.localize), set to 1 to count generated photoelectrons.
+        calibrate_movie(bool=True): Pixel calibration of raw movie using offset and gain maps for CMOS sensors
+        localize(bool=True):        Localize raw or calibrated movie (CMOS) (see picasso_addon.localize)
+        box(int=9):                 Box length (uneven!) of fitted spots (see picasso.localize)
+        mng(int or str='auto'):     Minimal net-gradient spot detection threshold(see picasso.localize. If set to 'auto' minimal net_gradient is determined by autodetect_mng().
+        baseline(int=113):          Camera spec. baseline (see picasso.localize).
+        gain(float=1):              Camera spec. EM gain (see picasso.localize)
+        sensitivity(float=0.49):    Camera spec. sensitivity (see picasso.localize)
+        qe(float=1):                Camera spec. quantum gain (see picasso.localize), set to 1 to count generated photoelectrons.
         
-        undrift(bool=True):        Apply RCC drift correction (see picasso.postprocess)
-        segments(int=1000):     Segment length (frames) for undrifting by RCC (see picasso.render)
+        undrift(bool=True):              Apply RCC drift correction (see picasso.postprocess)
+        segments(int=450 or str='auto'): Segment length (frames) for undrifting by RCC (see picasso.render). If set to 'auto' segment length is ```int(ceil(NoFrames))```.
     
     Returns: 
         list:
@@ -281,7 +281,7 @@ def main(file,info,path,**params):
                                     'gain':1,
                                     'weight_fit':False,
                                     'undrift':True,
-                                    'segments':1000,
+                                    'segments':450,
                                    }
     for key, value in standard_params.items():
         try:
@@ -319,14 +319,14 @@ def main(file,info,path,**params):
            
         ### Localize movie
         locs = localize_movie(file,
-                                           params['box'],
-                                           params['mng'],
-                                           0,         # Baseline set to 0 since movie already converted to e-
-                                           1,         # Sensitivity set to 1 since movie already converted to e-
-                                           params['qe'],
-                                           params['gain'],
-                                           params['weight_fit']
-                                           )
+                              params['box'],
+                              params['mng'],
+                              0,         # Baseline set to 0 since movie already converted to e-
+                              1,         # Sensitivity set to 1 since movie already converted to e-
+                              params['qe'],
+                              params['gain'],
+                              params['weight_fit']
+                              )
         
         ### Save _locs and yaml
         print('Saving _locs ...')
@@ -335,9 +335,9 @@ def main(file,info,path,**params):
         info = info + [params_localize]  # Update info
         next_path=path+'_locs.hdf5' # Update path
         io.save_locs(next_path,
-                            locs,
-                            info,
-                            )
+                     locs,
+                     info,
+                     )
         
         ### Update path
         next_path = os.path.splitext(next_path)[0] # Remove file extension
@@ -348,19 +348,22 @@ def main(file,info,path,**params):
     
     ############################## Undrift
     if params['undrift']==True:
+        if params['segments'] == 'auto':
+            NoFrames = info[0]['Frames']
+            params['segments'] = int(np.ceil(NoFrames/10))
         try:
             drift, locs_undrift = postprocess.undrift(locs,
-                                                                           info,
-                                                                           params['segments'],
-                                                                           display=False)
+                                                      info,
+                                                      params['segments'],
+                                                      display=False)
             ### Save _locs_render and yaml
             print('Saving _render ...')
             info= info + [ {'segments':params['segments']} ] # Update info
             next_path = next_path + '_render.hdf5' # Update path
             io.save_locs(next_path,
-                                locs_undrift,
-                                info,
-                                )
+                         locs_undrift,
+                         info,
+                         )
         except:
             print('Undrifting by RCC was not possible')
             locs_undrift = locs

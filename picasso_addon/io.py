@@ -12,6 +12,7 @@
 import pandas as pd
 import h5py
 import os
+import numpy as np
 
 #%%
 def load_locs(path,container='locs'):
@@ -84,7 +85,10 @@ def save_picks(locs,pick_diameter,path):
         
     '''
     x=locs.x
+    if type(x) != np.ndarray: x = np.array(x)
     y=locs.y
+    if type(y) != np.ndarray: y = np.array(y)
+    
     centers = []
    
     for index, element in enumerate(range(len(x))):
