@@ -107,8 +107,9 @@ def autodetect_mng(movie,info,box):
     ### Get lowest  (10%) boxsum values and respective net gradients
     boxvals_sort_low = boxvals_sort[:int(0.1*len(boxvals)),:]
     
-    ### Set minimum net gradient to (median + 4 x the standard deviation) of remaining netgradients (i.e. 10% boxsum percentile)
+    ### Set minimum net gradient to 2x(median + 4 x the standard deviation) of remaining netgradients (i.e. 10% boxsum percentile)
     mng = 4 * np.std(boxvals_sort_low[:,0]) + np.median(boxvals_sort_low[:,0])
+    # mng = mng*2
     
     mng=int(np.ceil(mng/10)*10) 
     

@@ -12,13 +12,15 @@ importlib.reload(autopick)
 
 ############################################# Load raw data
 dir_names=[]
-dir_names.extend(['/fs/pool/pool-schwille-paint/Data/p17.lbFCS2/20-11-23_N12_T23_CalibrationTest/id45_Pm2-10nM-Meta_p40uW_exp200_Corr-On_1'])
+dir_names.extend(['/fs/pool/pool-schwille-paint/Data/p06.SP-tracking/21-03-14_N1_18xCTC_TIRFscan/04_id169_40nM-Euro_p114uW_d094_1'])
 
 file_names=[]
-file_names.extend(['id45_Pm2-10nM-Meta_p40uW_exp200_Corr-On_1_MMStack_Pos0.ome_locs_render.hdf5'])
+file_names.extend(['04_id169_40nM-Euro_p114uW_d094_1_MMStack_Pos0.ome_locs_render.hdf5'])
 
 ############################################ Set parameters
-params={'lbfcs':True}
+params={'min_n_locs':450,
+        'pick_diameter':2,
+        }
 
 #%%                   
 failed_path=[]

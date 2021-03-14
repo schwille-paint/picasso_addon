@@ -334,7 +334,7 @@ def main(locs,info,path,**params):
     
     Keyword Arguments:
         oversampling(int=5):            Oversampling for rendering of localization list, i.e. sub-pixels per pixel of original image.
-        pick_box(int=2*oversampling+1): Box length for spot detection in rendered image similar to `picasso.localize`_.
+        pick_box(int=7):                Box length for spot detection in rendered image similar to `picasso.localize`_.
         min_n_locs(float=0.2*NoFrames): Detection threshold for number of localizations in cluster.
                                         Standard value is set for `spt`_. 
                                         Set to lower value for usual DNA-PAINT signal (see ``lbfcs``).
@@ -354,11 +354,10 @@ def main(locs,info,path,**params):
     path=os.path.splitext(path)[0]
     
     ### Set standard conditions if not set as input
-    oversampling=5
     NoFrames=info[0]['Frames']
     
-    standard_params={'oversampling':oversampling,
-                     'pick_box':2*oversampling+1,
+    standard_params={'oversampling':5,
+                     'pick_box':7,
                      'min_n_locs':0.2*NoFrames,
                      'fit_center':False,
                      'pick_diameter':1.2,

@@ -10,20 +10,14 @@ importlib.reload(localize)
 
 ############################################# Load raw data
 dir_names=[]
-dir_names.extend(['/fs/pool/pool-schwille-paint/Data/p17.lbFCS2/20-12-09_N1_T23_ibidi_cseries/ibidi_id180_Pm2-20nM_p40uW_1'])
-dir_names.extend(['/fs/pool/pool-schwille-paint/Data/p17.lbFCS2/20-12-09_N1_T23_ibidi_cseries/ibidi_id180_Pm2-10nM_p40uW_1'])
-dir_names.extend(['/fs/pool/pool-schwille-paint/Data/p17.lbFCS2/20-12-09_N1_T23_ibidi_cseries/ibidi_id180_Pm2-5nM_p40uW_1'])
-
+dir_names.extend(['/fs/pool/pool-schwille-paint/Data/p06.SP-tracking/21-03-14_N1_18xCTC_TIRFscan/04_id169_40nM-Euro_p114uW_d094_1'])
 
 file_names=[]
-file_names.extend(['ibidi_id180_Pm2-20nM_p40uW_1_MMStack_Pos0.ome.tif'])
-file_names.extend(['ibidi_id180_Pm2-10nM_p40uW_1_MMStack_Pos0.ome.tif'])
-file_names.extend(['ibidi_id180_Pm2-5nM_p40uW_1_MMStack_Pos0.ome.tif'])
-
+file_names.extend(['04_id169_40nM-Euro_p114uW_d094_1_MMStack_Pos0.ome.tif'])
 
 
 ############################################ Set parameters
-params ={}
+params ={'box':5}
 
 #%%
 ############################################ Main loop                   
@@ -58,7 +52,7 @@ print('Failed attempts: %i'%(len(failed_path)))
 # import picasso.localize
 
 # ### Load movie
-# i=1
+# i=0
 # path=os.path.join(dir_names[i],file_names[i])
 # movie,info=io.load_movie(path)
 
@@ -67,23 +61,27 @@ print('Failed attempts: %i'%(len(failed_path)))
 
 # #%%
 # ### Spot detection
-# frame = 0
-# box = 7
+# frame = 1000
+# box = 5
 
-# xlim = np.array([0,100])
-# ylim = np.array([0,100])
+# xlim = np.array([0,200]) + 250
+# ylim = np.array([0,200]) + 250
 
-# mng, boxvals = localize.autodetect_mng(movie_e,info,box)
+# mng = localize.autodetect_mng(movie_e,info,box)
+# mng = 1.5*mng
+# print(mng)
+
 # y,x,ng= picasso.localize.identify_in_frame(movie[frame],
 #                                             mng,
 #                                             box)
+
 # ### Preview
 # f=plt.figure(num=1,figsize=[6,6])
 # f.subplots_adjust(bottom=0.,top=1.,left=0.,right=1.)
 # f.clear()
 # ax=f.add_subplot(111)
-# ax.imshow(movie_e[frame,:,:],cmap='gray',vmin=0,vmax=80,interpolation='nearest',origin='lower')
-# ax.scatter(x,y,s=150,marker='o',color='None',edgecolor='r',lw=2)   
+# ax.imshow(movie_e[frame,:,:],cmap='gray',vmin=0,vmax=125,interpolation='nearest',origin='upper')
+# ax.scatter(x,y,s=150,marker='o',color='None',edgecolor='r',lw=2)
 # ax.grid(False)
 # ax.set_xlim(xlim)
 # ax.set_ylim(ylim)
