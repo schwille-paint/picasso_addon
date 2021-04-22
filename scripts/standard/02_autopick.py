@@ -12,14 +12,14 @@ importlib.reload(autopick)
 
 ############################################# Load raw data
 dir_names=[]
-dir_names.extend(['/fs/pool/pool-schwille-paint/Data/p17.lbFCS2/21-04-21_EGFR_2xCTC/09_w5-250pM_Cy3B-CTween-c2500_561-p50uW-s75_Pos0-4_1/pick_test'])
+dir_names.extend([r'C:\Data\p17.lbFCS2\21-01-28_higherN-5xCTC_cseries\autopick_overlap_test'])
 
 file_names=[]
-file_names.extend(['render_picked_render.hdf5'])
+file_names.extend(['id200_5000pM_p40uW_exp400_1_MMStack_Pos0.ome_locs_render.hdf5'])
 
 ############################################ Set parameters
-params={'pick_diameter':2.5,
-        'lbfcs':True}
+params={'pick_diameter':10,
+        'min_n_locs':5000}
 
 #%%                   
 failed_path=[]

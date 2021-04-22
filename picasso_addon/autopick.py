@@ -21,6 +21,25 @@ import picasso.io as io
 
 import picasso_addon.io as addon_io
 
+PICKED_DTYPE = {'group':np.uint32,
+                'frame':np.uint32,
+                'x':np.float32,
+                'y': np.float32,
+                'photons':np.float32,
+                'sx':np.float32,
+                'sy':np.float32,
+                'bg':np.float32,
+                'lpx':np.float32,
+                'lpy':np.float32,
+                'ellipticity':np.float32,
+                'net_gradient':np.float32,
+                }
+LOCS_DTYPE = PICKED_DTYPE.copy()
+del LOCS_DTYPE['group']
+
+LOCS_COLS = [field for field in LOCS_DTYPE]
+PICKED_COLS = [field for field in PICKED_DTYPE]
+
 #%%
 @numba.jit(nopython=True, nogil=True, cache=False)
 def check_spots(frame,y,x,box):
@@ -208,32 +227,53 @@ def query_locs_for_centers(locs,centers,pick_radius=1):
     
     return picks_idx
 #%%
-def get_picked(locs,picks_idx,field='group'):
+def get_picked(locs_in,picks_idx):
     '''
-    Assign group ID to locs according to picks_idx as obtained by ``query_locs_for_centers()`` and sort.
+    Get locs corresponding to picks_idx as obtained by ``query_locs_for_centers()`` and assign group ID.
     
     Args:
-        locs (pandas.DataFrame): Localizations (see picasso.localize) converted to DataFrame for faster sorting.
-        picks_idx (list): 		 Single list entries correpond to indices in locs within pick_radius around centers. 
-                                 See ``query_locs_for_centers()``.
-        field (str='group'):     Name of column for group ID in output DataFrame.
+        locs (numpy.recarray):      Localizations as loaded by picasso.io (see picasso.localize).
+        picks_idx (numpy.ndarray):  Single rows correpond to indices (as list) in locs within pick_radius around centers. 
+                                    See ``query_locs_for_centers()``.
     
     Returns:
-        pandas.DataFrame: Picked as in `picasso.render`_, i.e. original locs with group assigned according to picks defined by picks_idx.
+        pandas.DataFrame: Picked as in `picasso.render`_. Localizations in overlapping picks appear in each pick, 
+                          i.e. same localization appears multiple times but with different group ID!
+                          This means ``_picked`` can have more localizations than original ``_locs``!
     '''
-    locs_picked=locs.copy()
 
-    #### Assign group index
-    groups=np.full(len(locs),-1)
-    for g,idx in enumerate(picks_idx): groups[idx]=g
-    locs_picked[field]=groups
+    ######### Prepare locs
+    ### Convert to DataFrame for easier access
+    locs_df = pd.DataFrame(locs_in,dtype=np.float32)
+    ### Rearrange colums according to COLS_ORDER
+    locs_df = locs_df[LOCS_COLS]
+    ### Convert DataFrame to numpy.array for faster computation
+    locs = locs_df.values.astype(np.float32)
     
-    #### Dropping, type conversion and sorting
-    locs_picked=locs_picked.loc[locs_picked.group>=0,:] # Drop all unassigned localizations i.e. group==-1
-    locs_picked=locs_picked.astype({'group':np.uint32}) # Convert to right dtype
-    locs_picked.sort_values(['group','frame'],inplace=True) # Sort
+    ######### Prepare picks_idx
+    ### Convert pick indices np.ndarray to list
+    picks_list = picks_idx.tolist()
+    ### Get flattened length of pick_list
+    n = np.sum([len(l) for l in picks_list])
     
-    return locs_picked
+    ######## This is the important part for speedy group assignment
+    ### Get one dimensional array of pick indices in locs
+    ids = []
+    for l in picks_list: ids.extend(l)
+    ### Get one dimensional array of groups ids corresponding to pick indices in locs
+    gs = [np.ones(len(l))*group for group,l in enumerate(picks_list)]
+    gs = np.concatenate(gs)
+    
+    ### Initiate picked
+    picked = np.zeros((n,len(PICKED_COLS)), dtype = np.float32)
+    ### Assign all localization information to picked
+    picked[:,1:] = locs[ids,:]
+    picked[:,0] = gs
+    
+    picked_df = pd.DataFrame(picked, columns = PICKED_COLS)
+    picked_df = picked_df.astype(PICKED_DTYPE)
+    
+    return picked_df
 
 #%%
 def ck_nlf(trace, M = 10, N = [2, 4, 8, 16], p = 30):
@@ -433,10 +473,9 @@ def main(locs,info,path,**params):
                                      pick_radius=params['pick_diameter']/2,
                                      )
     ### Assign group ID to locs
-    print('Assigning group ID ...')
-    locs_picked=get_picked(pd.DataFrame(locs),
+    print('Assigning %i groups ...'%len(picks_idx))
+    locs_picked=get_picked(locs,
                            picks_idx,
-                           field='group',
                            )
     
     ### Apply Chung-Kennedy local mean filter to photons of each group
