@@ -1,4 +1,4 @@
-name: picasso_addon
+name: test
 channels:
   - defaults
   - conda-forge

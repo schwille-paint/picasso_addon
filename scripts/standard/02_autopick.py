@@ -12,15 +12,14 @@ importlib.reload(autopick)
 
 ############################################# Load raw data
 dir_names=[]
-dir_names.extend(['/fs/pool/pool-schwille-paint/Data/p06.SP-tracking/21-03-14_N1_18xCTC_TIRFscan/04_id169_40nM-Euro_p114uW_d094_1'])
+dir_names.extend(['/fs/pool/pool-schwille-paint/Data/p17.lbFCS2/21-04-21_EGFR_2xCTC/09_w5-250pM_Cy3B-CTween-c2500_561-p50uW-s75_Pos0-4_1/pick_test'])
 
 file_names=[]
-file_names.extend(['04_id169_40nM-Euro_p114uW_d094_1_MMStack_Pos0.ome_locs_render.hdf5'])
+file_names.extend(['render_picked_render.hdf5'])
 
 ############################################ Set parameters
-params={'min_n_locs':450,
-        'pick_diameter':2,
-        }
+params={'pick_diameter':2.5,
+        'lbfcs':True}
 
 #%%                   
 failed_path=[]

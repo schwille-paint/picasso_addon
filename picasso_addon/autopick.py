@@ -225,7 +225,7 @@ def get_picked(locs,picks_idx,field='group'):
 
     #### Assign group index
     groups=np.full(len(locs),-1)
-    for g,idx in enumerate(picks_idx): groups[idx]=g   
+    for g,idx in enumerate(picks_idx): groups[idx]=g
     locs_picked[field]=groups
     
     #### Dropping, type conversion and sorting
@@ -333,13 +333,12 @@ def main(locs,info,path,**params):
         info(list(dict)):               Info to localization list when loaded with picasso.io.load_locs().
     
     Keyword Arguments:
+        pick_diameter(float=1.2):       Pick diameter in original pixels.
         oversampling(int=5):            Oversampling for rendering of localization list, i.e. sub-pixels per pixel of original image.
-        pick_box(int=7):                Box length for spot detection in rendered image similar to `picasso.localize`_.
         min_n_locs(float=0.2*NoFrames): Detection threshold for number of localizations in cluster.
                                         Standard value is set for `spt`_. 
                                         Set to lower value for usual DNA-PAINT signal (see ``lbfcs``).
         fit_center(bool=False):         False = Center of mass. True = 2D Gaussian fitting of center.
-        pick_diameter(float=1.2):       Pick diameter in original pixels.
         lbfcs(bool=False):              If set to True will overrun min_n_locs and sets it to 0.02*NoFrames.
         
     Returns:
@@ -356,11 +355,10 @@ def main(locs,info,path,**params):
     ### Set standard conditions if not set as input
     NoFrames=info[0]['Frames']
     
-    standard_params={'oversampling':5,
-                     'pick_box':7,
+    standard_params={'pick_diameter':1.2,
+                     'oversampling':5,
                      'min_n_locs':0.2*NoFrames,
                      'fit_center':False,
-                     'pick_diameter':1.2,
                      }
     ### If lbFCS given overrun min_n_locs
     try: 
@@ -397,15 +395,22 @@ def main(locs,info,path,**params):
         raise SystemExit('locs must be given as numpy.recarray')
   
     ### Render locs
-    print('Rendering locs for pick detection ...')
+    print('Rendering locs for pick detection ...(oversampling = %i)'%params['oversampling'])
     image=render.render(locs,
                         info,
                         oversampling=params['oversampling'],
-                        )[1]  
-    ### Get pick centers in image coordinates
-    print('Identifiying valid picks ...')
+                        )[1]
+    
+    ### Get pick centers in image coordinates ...
+    ### ... i.e. first define correct box size for given pick_diameter
+    pick_box_half = params['pick_diameter'] * 0.5 * params['oversampling'] # Half the box in oversampled size
+    pick_box_half = np.floor(pick_box_half - 0.5)                          # 
+    pick_box =  int(2*pick_box_half + 1)                                   # Mutliply half by 2x and add 1 to get uneven integer for box
+    pick_box = max(3,pick_box)                                             # Ensure that box >= 3
+    print('Identifiying valid picks ...(box = %i)'%pick_box)
+    
     centers_image,fit=spotcenters_in_image(image,
-                                           params['pick_box'],
+                                           pick_box,
                                            params['min_n_locs'],
                                            fit=params['fit_center'])
     params['fit_center']=fit # Update if it was not successful!
@@ -422,7 +427,7 @@ def main(locs,info,path,**params):
                         )
     
     ### Query locs for centers
-    print('Build up and query KDtree ...')
+    print('Build up and query KDtree ...(pick_diameter = %.1f)'%params['pick_diameter'])
     picks_idx=query_locs_for_centers(locs,
                                      centers[['x','y']].values,
                                      pick_radius=params['pick_diameter']/2,

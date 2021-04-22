@@ -11,3 +11,9 @@ __pycache__
 /scripts/standard/.ipynb_checkpoints
 /scripts/notebooks/.ipynb_checkpoints
 /scripts/examples/.ipynb_checkpoints
+
+/dask-worker-space
+/picasso_addon/dask-worker-space
+/scripts/dask-worker-space
+/scripts/standard/dask-worker-space
+/scripts/examples/dask-worker-space

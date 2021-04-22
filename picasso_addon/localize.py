@@ -274,7 +274,7 @@ def main(file,info,path,**params):
     ############################# Set standard paramters if not given with function call
     standard_params={'use_maps': False,
                                     'localize':True,
-                                    'box':7,
+                                    'box':5,
                                     'mng':'auto',
                                     'baseline':113,
                                     'sensitivity':0.49,
