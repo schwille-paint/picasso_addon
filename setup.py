@@ -2,11 +2,11 @@ from setuptools import setup
 
 setup(
    name='picasso_addon',
-   version='0.1.1',
+   version='1.0.0.0',
    description='Some addons for picasso',
-   license="Max Planck Institute of Biochemistry",
+   license="MIT License",
    author='Stehr Florian',
-   author_email='stehr@biochem.mpg.de',
+   author_email='florian.stehr@gmail.com',
    url="http://www.github.com/schwille-paint/picasso_addon",
    packages=['picasso_addon'],
    classifiers=[
