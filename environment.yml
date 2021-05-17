@@ -1,4 +1,4 @@
-name: test
+name: yourenvironment
 channels:
   - defaults
   - conda-forge
