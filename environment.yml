@@ -1,4 +1,4 @@
-name: yourenvironment
+name: picasso_addon
 channels:
   - defaults
   - conda-forge
