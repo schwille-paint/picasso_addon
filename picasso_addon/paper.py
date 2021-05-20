@@ -93,13 +93,15 @@ def dump_containers(containers,path,ax_id):
         ### Retrieve errobar data
         elif isinstance(c,mpl.container.ErrorbarContainer):
             data_xy = c[0]._xy
-            data_yerr_low = c[1][0]._y
-            data_yerr_up = c[1][1]._y
             
             data = np.zeros((len(data_xy),4))
             data[:,:2] = data_xy
-            data[:,2] = data_yerr_low
-            data[:,3] = data_yerr_up
+            
+            if not isinstance(c[1],tuple):
+                data_yerr_low = c[1][0]._y
+                data_yerr_up = c[1][1]._y
+                data[:,2] = data_yerr_low
+                data[:,3] = data_yerr_up
             
         ### Get label
         label = c._label    # Get label
