@@ -3,8 +3,7 @@ from pathlib import Path
 import numpy as np
 import h5py
 import yaml
-
-
+import matplotlib as mpl
 
 #%%
 def save_data(path,data):
@@ -41,9 +40,10 @@ def dump_lines(lines,path,ax_id):
         label = line._label # Get label
         
         # Dump
-        label = remove_badchar(label) # Remove unwanted characters
-        save_path = os.path.join(path,'%i_'%ax_id+label+'.hdf5')
-        save_data(save_path,data)
+        if label != '_nolegend_':
+            label = remove_badchar(label) # Remove unwanted characters
+            save_path = os.path.join(path,'%i_'%ax_id+label+'.hdf5')
+            save_data(save_path,data)
 
 #%%
 def dump_images(images,path,ax_id):
@@ -53,9 +53,10 @@ def dump_images(images,path,ax_id):
         label = image._label    # Get label
         
         # Dump
-        label = remove_badchar(label) # Remove unwanted characters
-        save_path = os.path.join(path,'%i_'%ax_id+label+'.hdf5')
-        save_data(save_path,data)
+        if label != '_nolegend_':
+            label = remove_badchar(label) # Remove unwanted characters
+            save_path = os.path.join(path,'%i_'%ax_id+label+'.hdf5')
+            save_data(save_path,data)
 
 #%%
 def dump_collections(collections,path,ax_id):
@@ -70,29 +71,46 @@ def dump_collections(collections,path,ax_id):
         label = c._label   # Get label
         
         # Dump
-        label = remove_badchar(label) # Remove unwanted characters
-        save_path = os.path.join(path,'%i_'%ax_id+label+'.hdf5')
-        save_data(save_path,data)
+        if label != '_nolegend_':
+            label = remove_badchar(label) # Remove unwanted characters
+            save_path = os.path.join(path,'%i_'%ax_id+label+'.hdf5')
+            save_data(save_path,data)
                 
 #%%
 def dump_containers(containers,path,ax_id):
     
     for c in containers:
-        data_x = [(p._x0+p._x1)/2 for p in c.patches] # Get x positions as list
-        data_y = [p._y1 for p in c.patches]           # Get y positions as list
         
-        data = np.zeros((len(data_x),2))  # Combine to numpy array
-        data[:,0] = data_x
-        data[:,1] = data_y
+        ### Retrieve hist and bar data
+        if isinstance(c,mpl.container.BarContainer):
+            data_x = [(p._x0+p._x1)/2 for p in c.patches] # Get x positions as list
+            data_y = [p._y1 for p in c.patches]           # Get y positions as list
+            
+            data = np.zeros((len(data_x),2))  # Combine to numpy array
+            data[:,0] = data_x
+            data[:,1] = data_y
         
+        ### Retrieve errobar data
+        elif isinstance(c,mpl.container.ErrorbarContainer):
+            data_xy = c[0]._xy
+            data_yerr_low = c[1][0]._y
+            data_yerr_up = c[1][1]._y
+            
+            data = np.zeros((len(data_xy),4))
+            data[:,:2] = data_xy
+            data[:,2] = data_yerr_low
+            data[:,3] = data_yerr_up
+            
+        ### Get label
         label = c._label    # Get label
         if label[0] == '_': # In case of histogram BarContainer misses the correct label
             label = c.patches[0]._label
-        
+                
         # Dump
-        label = remove_badchar(label) # Remove unwanted characters
-        save_path = os.path.join(path,'%i_'%ax_id+label+'.hdf5')
-        save_data(save_path,data)
+        if label != '_nolegend_':
+            label = remove_badchar(label) # Remove unwanted characters
+            save_path = os.path.join(path,'%i_'%ax_id+label+'.hdf5')
+            save_data(save_path,data)
     
     
 #%%
