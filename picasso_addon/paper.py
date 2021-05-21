@@ -56,6 +56,26 @@ def dump_lines(lines):
     return labels, datas
 
 #%%
+def dump_patches(patches):
+    
+    # For histograms with histype step
+    datas = []
+    labels =  []
+    for patch in patches:
+        if isinstance(patch,mpl.patches.Polygon):
+            data = np.array(patch.xy)     # Get data
+            label = patch._label # Get label
+            # Dump
+            if label != '_nolegend_':
+                #Adjust label
+                label = remove_badchar(label) # Remove unwanted characters
+                
+                datas.extend([data])
+                labels.extend([label])
+            
+    return labels, datas
+    
+#%%
 def dump_images(images):
     
     datas = []
@@ -148,6 +168,7 @@ def dump_data_from_ax(ax):
     
     ### Get lines(plot,step),images(imshow),collections(scatter,fill_between) and containers (hist,bar)
     lines = ax.get_lines()
+    patches = ax.patches
     images = ax.get_images()
     collections = ax.collections
     containers = ax.containers
@@ -165,6 +186,12 @@ def dump_data_from_ax(ax):
     ### Dump lines
     if len(lines) > 0: # Check if not empty
         label, data = dump_lines(lines)
+        for l in label: labels.extend([l])
+        for d in data: datas.extend([d])
+    
+    ### Dump patches
+    if len(patches) > 0: # Check if not empty
+        label, data = dump_patches(patches)
         for l in label: labels.extend([l])
         for d in data: datas.extend([d])
         
