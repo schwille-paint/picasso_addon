@@ -5,26 +5,30 @@ import h5py
 import yaml
 import matplotlib as mpl
 
-#%%
-def save_data(path,data):
-    
-    with h5py.File(path, 'w') as data_file:
-        data_file.create_dataset('data', data=data)
 
-#%%
-def save_info(path,info):
-    
-    with open(path, "w") as info_file:
-        dump = yaml.dump(info, default_flow_style = None,)
-        info_file.write(dump)
         
 #%%
-def load_data(path):
-    
-    with h5py.File(path, 'r') as data_file:
-        data = data_file['data'][...]
-    return data
+def hdf5_get_info(path):
+    print(path)
+    with h5py.File(path,'r') as f:
+        for name in f:
+            print()
+            print('Group:'+name)
+            
+            print('   Attributes:')
+            for k in f[name].attrs: print('      '+k)
+            
+            print('   Datasets:')
+            for k in f[name].keys():
+                dest = name + '/' + k
+                shape = f[dest].shape
+                print('      ' + dest + ': ' + str(shape))
 
+#%%
+def hdf5_load_dataset(path,dest):
+    with h5py.File(path,'r') as f:
+        ds = np.array(f[dest])
+    return ds
 #%%
 def remove_badchar(label):
     
@@ -33,37 +37,51 @@ def remove_badchar(label):
     return label
 
 #%%
-def dump_lines(lines,path,ax_id):
+def dump_lines(lines):
     
+    datas = []
+    labels =  []
     for line in lines:
-        data = line._xy     # Get data
+        data = np.array(line._xy)     # Get data
         label = line._label # Get label
         
         # Dump
         if label != '_nolegend_':
+            #Adjust label
             label = remove_badchar(label) # Remove unwanted characters
-            save_path = os.path.join(path,'%i_'%ax_id+label+'.hdf5')
-            save_data(save_path,data)
+            
+            datas.extend([data])
+            labels.extend([label])
+            
+    return labels, datas
 
 #%%
-def dump_images(images,path,ax_id):
+def dump_images(images):
     
+    datas = []
+    labels =  []
     for image in images:
-        data = image._A         # Get data
+        data = np.array(image._A)         # Get data
         label = image._label    # Get label
         
         # Dump
         if label != '_nolegend_':
+            #Adjust label
             label = remove_badchar(label) # Remove unwanted characters
-            save_path = os.path.join(path,'%i_'%ax_id+label+'.hdf5')
-            save_data(save_path,data)
+            
+            datas.extend([data])
+            labels.extend([label])
+            
+    return labels, datas
 
 #%%
-def dump_collections(collections,path,ax_id):
+def dump_collections(collections):
     
+    datas = []
+    labels =  []
     for c in collections:
-        data_xy = c._offsets    # Get xy data
-        data_z = c.get_array()  # Get z data (e.g. color in scatter plot)
+        data_xy = np.array(c._offsets)    # Get xy data
+        data_z = np.array(c.get_array())  # Get z data (e.g. color in scatter plot)
         data = np.zeros((len(data_xy),3))  # Combine to numpy array
         data[:,0:2] = data_xy
         data[:,2] = data_z
@@ -72,13 +90,19 @@ def dump_collections(collections,path,ax_id):
         
         # Dump
         if label != '_nolegend_':
+            #Adjust label
             label = remove_badchar(label) # Remove unwanted characters
-            save_path = os.path.join(path,'%i_'%ax_id+label+'.hdf5')
-            save_data(save_path,data)
+            
+            datas.extend([data])
+            labels.extend([label])
+            
+    return labels, datas
                 
 #%%
-def dump_containers(containers,path,ax_id):
+def dump_containers(containers):
     
+    datas = []
+    labels =  []
     for c in containers:
         
         ### Retrieve hist and bar data
@@ -100,8 +124,8 @@ def dump_containers(containers,path,ax_id):
             if not isinstance(c[1],tuple):
                 data_yerr_low = c[1][0]._y
                 data_yerr_up = c[1][1]._y
-                data[:,2] = data_yerr_low
-                data[:,3] = data_yerr_up
+                data[:,2] = np.array(data_yerr_low)
+                data[:,3] = np.array(data_yerr_up)
             
         ### Get label
         label = c._label    # Get label
@@ -110,13 +134,17 @@ def dump_containers(containers,path,ax_id):
                 
         # Dump
         if label != '_nolegend_':
+            #Adjust label
             label = remove_badchar(label) # Remove unwanted characters
-            save_path = os.path.join(path,'%i_'%ax_id+label+'.hdf5')
-            save_data(save_path,data)
+            
+            datas.extend([data])
+            labels.extend([label])
+            
+    return labels, datas
     
     
 #%%
-def dump_data_from_ax(ax,ax_id,path):
+def dump_data_from_ax(ax):
     
     ### Get lines(plot,step),images(imshow),collections(scatter,fill_between) and containers (hist,bar)
     lines = ax.get_lines()
@@ -131,49 +159,72 @@ def dump_data_from_ax(ax,ax_id,path):
             'ylim':ylim,
             }
     
-    ### Save info about ax as .yaml
-    save_info(os.path.join(path,'%i_'%ax_id+'axinfo.yaml'),info)
-    
-    ### Get legend labels
-    legend_labels = ax.get_legend_handles_labels()[1]
+    labels = []
+    datas = []
     
     ### Dump lines
     if len(lines) > 0: # Check if not empty
-        dump_lines(lines,path,ax_id)
-     
+        label, data = dump_lines(lines)
+        for l in label: labels.extend([l])
+        for d in data: datas.extend([d])
+        
     ### Dump images
     if len(images) > 0: # Check if not empty
-        dump_images(images,path,ax_id)
+        label, data = dump_images(images)
+        for l in label: labels.extend([l])
+        for d in data: datas.extend([d])
     
     ### Dump collections
     if len(collections) > 0: # Check if not empty
-        dump_collections(collections,path,ax_id)
+        label, data = dump_collections(collections)
+        for l in label: labels.extend([l])
+        for d in data: datas.extend([d])
     
     ### Dump containers
     if len(containers) > 0: # Check if not empty
-        dump_containers(containers,path,ax_id)
+        label, data = dump_containers(containers)
+        for l in label: labels.extend([l])
+        for d in data: datas.extend([d])
     
     
-    return [lines, images, collections, containers], info
+    return labels, datas, info
     
 #%%
-def dump_data_from_fig(fig,scriptpath,subfolder_name = ''):
+def dump_data_from_fig(fig,scriptpath,save_name = 'fig'):
     
     ### Retrieve path to directory of script 
     path = os.path.dirname(os.path.realpath(scriptpath))
     
     ### Create new subfolder to save data in script directory
-    path = os.path.join(path,subfolder_name)
-    Path(path).mkdir(parents=False, exist_ok=True)
+    path = os.path.join(path,save_name + '.hdf5')
     
-    data_axes = []
-    info_axes = []
-    
+    labels = []
+    datas = []
+    infos = []
     for ax_id,ax in enumerate(fig.axes):
-        data, info = dump_data_from_ax(ax,ax_id,path)
-        data_axes.extend(data)
-        info_axes.extend(data)
+        label, data, info = dump_data_from_ax(ax)
         
-    return data_axes, info_axes, path
+        ### Add ax_id to info
+        info['ax_id'] = 'ax%i'%ax_id
+        
+        labels.append(label)
+        datas.append(data)
+        infos.append(info)
+    
+    ### Save in .hdf5 with
+    with h5py.File(path,'w') as f:
+        
+        ### Create group for each axis
+        for i,info in enumerate(infos):
+            grp = f.create_group(info['ax_id'])
+            
+            # Add ax info as attributes
+            for k in info.keys(): grp.attrs[k] = info[k]
+            
+            ### Create datasets within group
+            for j,label in enumerate(labels[i]):
+                grp.create_dataset(name = label, data = datas[i][j])
+    
+    return  labels, datas, infos, path
         
     
