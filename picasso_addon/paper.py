@@ -32,7 +32,7 @@ def hdf5_load_dataset(path,dest):
 #%%
 def remove_badchar(label):
     
-    bad_char = ['$','}','{','\\']
+    bad_char = ['$','}','{','\\','/']
     label = ''.join(char for char in label if char not in bad_char)
     return label
 
