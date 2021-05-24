@@ -229,14 +229,15 @@ def dump_data_from_fig(fig,scriptpath,save_name = 'fig'):
     datas = []
     infos = []
     for ax_id,ax in enumerate(fig.axes):
-        label, data, info = dump_data_from_ax(ax)
-        
-        ### Add ax_id to info
-        info['ax_id'] = 'ax%i'%ax_id
-        
-        labels.append(label)
-        datas.append(data)
-        infos.append(info)
+        if ax._label != '<colorbar>': # Colorbar axis exception -> do not take into account!
+            label, data, info = dump_data_from_ax(ax)
+            
+            ### Add ax_id to info
+            info['ax_id'] = 'ax%i'%ax_id
+            
+            labels.append(label)
+            datas.append(data)
+            infos.append(info)
     
     ### Save in .hdf5 with
     with h5py.File(path,'w') as f:
