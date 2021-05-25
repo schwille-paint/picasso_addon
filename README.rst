@@ -1,5 +1,9 @@
-picasso_addon (DOI: 10.5281/zenodo.4792396)
+picasso_addon
 =============
+
+.. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.4792396.svg
+   :target: https://doi.org/10.5281/zenodo.4792396
+   
 This package provides some further functionalities based on `picasso <https://github.com/jungmannlab/picasso>`_ python package including:
 
 - Automated minimal net-gradient detection for picasso.localize
