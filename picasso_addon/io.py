@@ -13,9 +13,10 @@ import pandas as pd
 import h5py
 import os
 import numpy as np
+import picasso.io as io
 
 #%%
-def load_locs(path,container='locs'):
+def load_locs(path):
     """
     Returns localization .hdf5 from picasso as pandas.DataFrame and corresponding .yaml as list of dictionaries.
     
@@ -32,12 +33,8 @@ def load_locs(path,container='locs'):
             - [1] (list): List of dictionaries contained in .yaml corresponding to .hdf5 file
     """
     
-    with pd.HDFStore(path,'r') as store:
-        locs=store[container]
-        
-    ### Get corresponding .yaml file
-    from picasso.io import load_info as load_info
-    info=load_info(path)
+    locs, info = io.load_locs(path)
+    locs = pd.DataFrame(locs)
     
     return locs,info
 

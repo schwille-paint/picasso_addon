@@ -1,4 +1,4 @@
-name: yourenvironment
+name: picasso_addon
 channels:
   - defaults
   - conda-forge
@@ -23,6 +23,7 @@ dependencies:
   - spyder
   - colorama
   - jupyterlab
+  - snappy
   - pip:
     - lmfit
     - sphinx-rtd-theme
