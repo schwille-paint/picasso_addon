@@ -141,7 +141,7 @@ def dump_containers(containers):
             data = np.zeros((len(data_xy),4))
             data[:,:2] = data_xy
             
-            if not isinstance(c[1],tuple):
+            if len(c[1]) > 0:
                 data_yerr_low = c[1][0]._y
                 data_yerr_up = c[1][1]._y
                 data[:,2] = np.array(data_yerr_low)
