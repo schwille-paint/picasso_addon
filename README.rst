@@ -1,4 +1,4 @@
-picasso_addon
+picasso_addon (DOI: 10.5281/zenodo.4792396)
 =============
 This package provides some further functionalities based on `picasso <https://github.com/jungmannlab/picasso>`_ python package including:
 
