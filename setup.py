@@ -14,6 +14,6 @@ setup(
         "Operating System :: OS Independent",
    ],
    install_requires=[
-		'picasso @ git+https://github.com/jungmannlab/picasso.git#egg=0.3.1'
+		'picasso @ git+https://github.com/jungmannlab/picasso.git'
    ],
 )
