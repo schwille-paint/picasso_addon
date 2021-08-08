@@ -14,9 +14,6 @@ setup(
         "Operating System :: OS Independent",
    ],
    install_requires=[
-		"picasso",
-   ],
-   dependency_links=[
-		"https://github.com/jungmannlab/picasso/tarball/master",
+		"picasso @ git+https://github.com/jungmannlab/picasso.git",
    ],
 )
