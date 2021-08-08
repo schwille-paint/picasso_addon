@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
    name='picasso_addon',
-   version='1.0.0',
+   version='1.0.2',
    description='Some addons for picasso',
    license="MIT License",
    author='Stehr Florian',
@@ -14,6 +14,6 @@ setup(
         "Operating System :: OS Independent",
    ],
    install_requires=[
-		"picasso @ git+https://github.com/jungmannlab/picasso.git#egg=picasso-0.3.1",
+		"picasso @ git+https://github.com/jungmannlab/picasso.git#egg=picasso-0.3.2",
    ],
 )
