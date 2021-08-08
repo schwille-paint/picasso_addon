@@ -12,14 +12,13 @@ importlib.reload(autopick)
 
 ############################################# Load raw data
 dir_names=[]
-dir_names.extend([r'C:\Data\p17.lbFCS2\21-01-28_higherN-5xCTC_cseries\autopick_overlap_test'])
+dir_names.extend([r'C:\Data\p17.lbFCS2\20-12-17_N1-2x5xCTC_cseries\id180_Pm2-1d25nM_p40uW_exp400_1'])
 
 file_names=[]
-file_names.extend(['id200_5000pM_p40uW_exp400_1_MMStack_Pos0.ome_locs_render.hdf5'])
+file_names.extend(['id180_Pm2-1d25nM_p40uW_exp400_1_MMStack_Pos0.ome_locs_render.hdf5'])
 
 ############################################ Set parameters
-params={'pick_diameter':10,
-        'min_n_locs':5000}
+params={}
 
 #%%                   
 failed_path=[]
