@@ -26,7 +26,7 @@ picasso_addon was used for data analysis in:
 
 - `Flat-top TIRF illumination boosts DNA-PAINT imaging and quantification <https://www.nature.com/articles/s41467-019-09064-6>`_
 - `Toward Absolute Molecular Numbers in DNA-PAINT <https://pubs.acs.org/doi/10.1021/acs.nanolett.9b03546>`_
-- `Tracking Single Particles for Hours via Continuous DNA-mediated Fluorophore Exchange <https://www.biorxiv.org/content/10.1101/2020.05.17.100354v1>`_
+- `Tracking Single Particles for Hours via Continuous DNA-mediated Fluorophore Exchange <https://www.nature.com/articles/s41467-021-24223-4>`_
 
 .. toctree::
    :maxdepth: 2

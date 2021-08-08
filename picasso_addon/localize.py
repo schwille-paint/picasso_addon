@@ -221,9 +221,9 @@ def localize_movie(movie,
             theta = gausslq.fit_spots_gpufit(spots)
             
         locs = gausslq.locs_from_fits_gpufit(identifications,
-                                                                  theta,
-                                                                  box,
-                                                                  em)
+                                             theta,
+                                             box,
+                                             em)
     else:
         print('Non-weighted least square fitting (CPU) ..')
         fs = gausslq.fit_spots_parallel(spots,asynch=True)
